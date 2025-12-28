@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demonstração - Icon Picker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 0;
+        }
+        .demo-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .demo-header h1 {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .demo-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        .demo-section h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        .demo-result {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px dashed #dee2e6;
+        }
+        .selected-icon-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            font-size: 48px;
+            margin-top: 20px;
+        }
+        .code-block {
+            background: #2d3748;
+            color: #68d391;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        .badge-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        .feature-list li i {
+            color: #667eea;
+            margin-right: 10px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1><i class="fas fa-icons"></i> Icon Picker</h1>
+            <p class="lead text-muted">Seletor Visual de Ícones FontAwesome</p>
+            <span class="badge-custom">✨ 100+ Ícones Disponíveis</span>
+        </div>
+
+        <!-- Demonstração 1: Uso Básico -->
+        <div class="demo-section">
+            <h3><i class="fas fa-star"></i> Demonstração 1: Uso Básico</h3>
+            <p class="text-muted">Clique no ícone ou no campo para abrir o seletor visual.</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Selecione um Ícone</label>
+                    <div class="input-group">
+                        <span class="input-group-text" id="demo1Preview" style="cursor: pointer;">
+                            <i class="fas fa-home"></i>
+                        </span>
+                        <input type="text" class="form-control" id="demo1Input" 
+                               value="fa-home" placeholder="Clique para escolher">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Resultado</label>
+                    <div class="selected-icon-display" id="demo1Display">
+                        <i class="fas fa-home"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demonstração 2: Categorias -->
+        <div class="demo-section">
+            <h3><i class="fas fa-layer-group"></i> Demonstração 2: Ícones por Categoria</h3>
+            <p class="text-muted">Teste diferentes categorias de ícones.</p>
+            
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-car text-primary"></i> Transporte
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="transportePreview">
+                            <i class="fas fa-car"></i>
+                        </span>
+                        <input type="text" class="form-control" id="transporteInput" value="fa-car">
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-user text-success"></i> Usuário
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="userPreview">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input type="text" class="form-control" id="userInput" value="fa-user">
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-cog text-warning"></i> Configuração
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="configPreview">
+                            <i class="fas fa-cog"></i>
+                        </span>
+                        <input type="text" class="form-control" id="configInput" value="fa-cog">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demonstração 3: Casos de Uso -->
+        <div class="demo-section">
+            <h3><i class="fas fa-lightbulb"></i> Demonstração 3: Casos de Uso Reais</h3>
+            <p class="text-muted">Exemplos práticos de uso em formulários.</p>
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Módulo do Sistema</label>
+                    <div class="input-group">
+                        <span class="input-group-text" id="moduloPreview">
+                            <i class="fas fa-folder"></i>
+                        </span>
+                        <input type="text" class="form-control" id="moduloInput" 
+                               placeholder="fa-folder" value="fa-folder">
+                    </div>
+                    <small class="text-muted">Ícone para módulo principal</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Aplicação</label>
+                    <div class="input-group">
+                        <span class="input-group-text" id="appPreview">
+                            <i class="fas fa-file"></i>
+                        </span>
+                        <input type="text" class="form-control" id="appInput" 
+                               placeholder="fa-file" value="fa-file">
+                    </div>
+                    <small class="text-muted">Ícone para aplicação/página</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Características -->
+        <div class="demo-section">
+            <h3><i class="fas fa-check-circle"></i> Características</h3>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Interface visual intuitiva e moderna</li>
+                <li><i class="fas fa-check"></i> Busca em tempo real por nome do ícone</li>
+                <li><i class="fas fa-check"></i> Preview dinâmico ao selecionar</li>
+                <li><i class="fas fa-check"></i> Grid responsivo com 100+ ícones</li>
+                <li><i class="fas fa-check"></i> Categorias organizadas (transporte, usuários, etc.)</li>
+                <li><i class="fas fa-check"></i> Compatível com múltiplos campos na mesma página</li>
+                <li><i class="fas fa-check"></i> Efeitos hover e animações suaves</li>
+                <li><i class="fas fa-check"></i> Bootstrap 5 e FontAwesome 6</li>
+            </ul>
+        </div>
+
+        <!-- Código de Exemplo -->
+        <div class="demo-section">
+            <h3><i class="fas fa-code"></i> Exemplo de Código</h3>
+            <p class="text-muted">Como usar o Icon Picker em seu formulário:</p>
+            
+            <div class="code-block">
+&lt;!-- 1. Incluir o script --&gt;<br>
+&lt;script src="../js/icon_picker.js"&gt;&lt;/script&gt;<br>
+<br>
+&lt;!-- 2. HTML do campo --&gt;<br>
+&lt;div class="input-group"&gt;<br>
+&nbsp;&nbsp;&lt;span class="input-group-text" id="iconPreview"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;i class="fas fa-home"&gt;&lt;/i&gt;<br>
+&nbsp;&nbsp;&lt;/span&gt;<br>
+&nbsp;&nbsp;&lt;input type="text" id="iconInput" value="fa-home"&gt;<br>
+&lt;/div&gt;<br>
+<br>
+&lt;!-- 3. Inicializar --&gt;<br>
+&lt;script&gt;<br>
+&nbsp;&nbsp;makeIconInputClickable('iconInput', 'iconPreview');<br>
+&lt;/script&gt;
+            </div>
+        </div>
+
+        <!-- Links Úteis -->
+        <div class="text-center mt-4">
+            <h5 class="mb-3">Links Úteis</h5>
+            <a href="test_icon_picker.php" class="btn btn-primary me-2">
+                <i class="fas fa-vial"></i> Testes Interativos
+            </a>
+            <a href="../pages/menu_manager.php" class="btn btn-success me-2">
+                <i class="fas fa-sitemap"></i> Menu Manager
+            </a>
+            <a href="../pages/aplicacoes.php" class="btn btn-info">
+                <i class="fas fa-th-large"></i> Aplicações
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/icon_picker.js"></script>
+    
+    <script>
+        // Inicializar todos os campos de demonstração
+        document.addEventListener('DOMContentLoaded', function() {
+            // Demo 1
+            makeIconInputClickable('demo1Input', 'demo1Preview');
+            document.getElementById('demo1Input').addEventListener('input', function() {
+                const icon = this.value || 'fa-home';
+                document.querySelector('#demo1Preview i').className = 'fas ' + icon;
+                document.querySelector('#demo1Display i').className = 'fas ' + icon;
+            });
+            
+            // Demo 2
+            makeIconInputClickable('transporteInput', 'transportePreview');
+            document.getElementById('transporteInput').addEventListener('input', function() {
+                document.querySelector('#transportePreview i').className = 'fas ' + this.value;
+            });
+            
+            makeIconInputClickable('userInput', 'userPreview');
+            document.getElementById('userInput').addEventListener('input', function() {
+                document.querySelector('#userPreview i').className = 'fas ' + this.value;
+            });
+            
+            makeIconInputClickable('configInput', 'configPreview');
+            document.getElementById('configInput').addEventListener('input', function() {
+                document.querySelector('#configPreview i').className = 'fas ' + this.value;
+            });
+            
+            // Demo 3
+            makeIconInputClickable('moduloInput', 'moduloPreview');
+            document.getElementById('moduloInput').addEventListener('input', function() {
+                document.querySelector('#moduloPreview i').className = 'fas ' + this.value;
+            });
+            
+            makeIconInputClickable('appInput', 'appPreview');
+            document.getElementById('appInput').addEventListener('input', function() {
+                document.querySelector('#appPreview i').className = 'fas ' + this.value;
+            });
+        });
+    </script>
+</body>
+</html>

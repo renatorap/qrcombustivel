@@ -1,0 +1,351 @@
+<?php
+require_once '../config/cache_control.php';
+require_once '../config/config.php';
+require_once '../config/database.php';
+require_once '../config/security.php';
+require_once '../config/access_control.php';
+
+$token = Security::validateToken($_SESSION['token']);
+if (!$token) {
+    $_SESSION = array();
+    session_destroy();
+    header('Location: ../index.php');
+    exit;
+}
+
+require_once '../config/license_checker.php';
+$clienteId = $_SESSION['cliente_id'] ?? null;
+$grupoId = $_SESSION['grupoId'] ?? null;
+$statusLicenca = LicenseChecker::verificarEBloquear($clienteId, $grupoId);
+
+$accessControl = new AccessControl($_SESSION['userId']);
+
+// Permitir acesso apenas para grupo 4 (fornecedores)
+if (!$accessControl->isFornecedor()) {
+    die('Acesso negado. Este relatório está disponível apenas para fornecedores.');
+}
+
+$fornecedorId = $accessControl->getFornecedorId();
+?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Consumo - QR Combustível</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f5f6f7;
+            font-family: 'Inter', 'Roboto', 'Open Sans', sans-serif;
+        }
+        
+        .filter-section {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 12px;
+        }
+        
+        .filter-section h5 {
+            color: #2f6b8f;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+        
+        .results-section {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .stats-card {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            text-align: center;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .stats-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: #2f6b8f;
+            font-weight: 700;
+        }
+        
+        .stats-card small {
+            color: #495057;
+        }
+        .consumo-row {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s;
+        }
+        .consumo-row:hover {
+            background-color: #f8f9fa;
+        }
+        .btn-primary {
+            background: #2f6b8f;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background: #163f5a;
+        }
+        
+        .btn-secondary {
+            background: #f59b4c;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-weight: 600;
+        }
+        
+        .btn-secondary:hover {
+            background: #d96a1f;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .action-buttons button,
+        .action-buttons .dropdown button {
+            min-width: 150px;
+        }
+        
+        .action-buttons .btn-secondary {
+            border-color: #6c757d;
+        }
+        .export-dropdown .dropdown-menu {
+            min-width: 150px;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .results-section {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <?php include '../includes/header.php'; ?>
+    <?php include '../includes/sidebar.php'; ?>
+
+    <div class="main-content">
+        <div class="page-title">
+            <span><i class="fas fa-gas-pump"></i> Relatório de Consumo de Combustível</span>
+        </div>
+
+        <!-- Seção de Filtros -->
+        <div class="filter-section no-print" id="filterSection">
+            <h5 class="mb-3"><i class="fas fa-filter"></i> Filtros de Pesquisa</h5>
+            <form id="filterForm">
+                <div class="row">
+                    <!-- Tipo de Filtro de Data -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="tipoData">Tipo de Filtro de Data</label>
+                            <select class="form-control" id="tipoData" name="tipoData">
+                                <option value="intervalo">Intervalo de Datas</option>
+                                <option value="unica">Data Única</option>
+                                <option value="maior">Data Maior Que</option>
+                                <option value="menor">Data Menor Que</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Data Início (para intervalo) -->
+                    <div class="col-md-3" id="dataInicioDiv">
+                        <div class="form-group">
+                            <label for="dataInicio">Data Início</label>
+                            <input type="date" class="form-control" id="dataInicio" name="dataInicio">
+                        </div>
+                    </div>
+
+                    <!-- Data Fim (para intervalo) -->
+                    <div class="col-md-3" id="dataFimDiv">
+                        <div class="form-group">
+                            <label for="dataFim">Data Fim</label>
+                            <input type="date" class="form-control" id="dataFim" name="dataFim">
+                        </div>
+                    </div>
+
+                    <!-- Data Única -->
+                    <div class="col-md-3" id="dataUnicaDiv" style="display: none;">
+                        <div class="form-group">
+                            <label for="dataUnica">Data</label>
+                            <input type="date" class="form-control" id="dataUnica" name="dataUnica">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <!-- Horário Início -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="horaInicio">Horário Início</label>
+                            <input type="time" class="form-control" id="horaInicio" name="horaInicio">
+                        </div>
+                    </div>
+
+                    <!-- Horário Fim -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="horaFim">Horário Fim</label>
+                            <input type="time" class="form-control" id="horaFim" name="horaFim">
+                        </div>
+                    </div>
+
+                    <!-- Veículo -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="veiculo">Veículo</label>
+                            <select class="form-control" id="veiculo" name="veiculo">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Condutor -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="condutor">Condutor</label>
+                            <select class="form-control" id="condutor" name="condutor">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Pesquisar
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btnLimpar">
+                            <i class="fas fa-eraser"></i> Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Resumo de Estatísticas (oculto na tela, exibido apenas no PDF) -->
+        <div class="results-section no-print" id="statsSection" style="display: none;">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h3 id="totalAbastecimentos">0</h3>
+                        <small>Total de Abastecimentos</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h3 id="totalLitros">0</h3>
+                        <small>Total de Litros</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h3 id="totalValor">R$ 0,00</h3>
+                        <small>Valor Total</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h3 id="mediaValor">R$ 0,00</h3>
+                        <small>Valor Médio</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="action-buttons no-print" id="actionButtons" style="display: none;">
+            <button class="btn btn-secondary btn-sm" onclick="voltarPesquisa()">
+                <i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Voltar à Pesquisa
+            </button>
+            
+            <div class="dropdown">
+                <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-sort"></i>&nbsp;&nbsp;Ordenar
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="ordenar('data'); return false;">Por Data</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="ordenar('veiculo'); return false;">Por Veículo</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="ordenar('condutor'); return false;">Por Condutor</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="ordenar('valor'); return false;">Por Valor</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="ordenar('litros'); return false;">Por Litros</a></li>
+                </ul>
+            </div>
+            
+            <div class="dropdown export-dropdown">
+                <button class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-download"></i>&nbsp;&nbsp;Exportar
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" id="btnExportarExcel"><i class="fas fa-file-excel"></i> Excel</a></li>
+                    <li><a class="dropdown-item" href="#" id="btnExportarPDF"><i class="fas fa-file-pdf"></i> PDF</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Seção de Resultados -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h5 class="mb-3"><i class="fas fa-list"></i> Resultados da Pesquisa</h5>
+            <div class="table-responsive">
+                <table class="table table-hover" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Veículo</th>
+                            <th>Condutor</th>
+                            <th>Combustível</th>
+                            <th>Litros</th>
+                            <th>Valor Unit.</th>
+                            <th>Valor Total</th>
+                            <th>KM/Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <!-- Preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="paginacao" class="d-flex justify-content-center mt-3">
+                <!-- Paginação -->
+            </div>
+        </div>
+    </div>
+
+    <?php include '../includes/footer.php'; ?>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/relatorio_consumo.js"></script>
+</body>
+</html>

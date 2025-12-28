@@ -1,0 +1,37 @@
+status
+Migração concluída!
+TABLE_NAME	COLUMN_NAME	COLUMN_TYPE
+aditamento_combustivel	id_cliente	int(11)
+cargo	id_cliente	int(11)
+combustivel_veiculo	id_cliente	int(11)
+condutor	id_cliente	int(11)
+condutor_qrcode	id_cliente	int(11)
+consumo_combustivel	id_cliente	int(11)
+consumo_combustivel_original_fk_alterada	id_cliente	int(11)
+contrato	id_cliente	int(11)
+empresa	id_cliente	int(11)
+empresa_users	id_cliente	int(11)
+extrato_combustivel	id_cliente	int(11)
+fornecedor	id_cliente	int(11)
+fornecedor_users	id_cliente	int(11)
+licenca	id_cliente	int(11)
+licitacao	id_cliente	int(11)
+preco_combustivel	id_cliente	int(11)
+requisicao	id_cliente	int(11)
+sec_users	id_cliente	int(11)
+sec_users_groups	id_cliente	int(11)
+setor	id_cliente	int(11)
+un_orcamentaria	id_cliente	int(11)
+veiculo	id_cliente	int(11)
+veiculo_qrcode	id_cliente	int(11)
+vl_comb_adit_ativo	id_cliente	int(11)
+separador
+========================================
+resultado
+MIGRAÇÃO CONCLUÍDA COM SUCESSO!
+detalhe1
+Todas as referências a id_empresa foram removidas
+detalhe2
+Todos os relacionamentos agora usam id_cliente
+separador
+========================================

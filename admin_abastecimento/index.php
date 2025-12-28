@@ -1,0 +1,444 @@
+<?php
+// Redirecionar para a página de login na raiz
+header('Location: /login.php');
+exit;
+?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecionando...</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            background: #c1c3c7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            display: none;
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 25px 10px;
+            gap: 25px; /* distância entre login-logo e login-container */
+            min-height: 100vh;
+        }
+
+        .login-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: slideUp 0.6s ease-out;
+            margin-top: 0;
+            flex-shrink: 0;
+        }
+
+        .login-logo img {
+            max-width: 300px;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15));
+            animation: pulse 3s ease-in-out infinite;
+            padding-top: 25px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 100px rgba(47, 107, 143, 0.1);
+            overflow: hidden;
+            max-width: 400px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+            flex-shrink: 0;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #2f6b8f 0%, #255a7a 100%);
+            padding: 20px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+        }
+
+        /* detalhe em laranja na base do header */
+        .login-header::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 6px;
+            background: #f59b4c;
+            border-radius: 0 0 0 0;
+            box-shadow: 0 2px 6px rgba(245,155,76,0.12);
+        }
+
+        @keyframes moveBackground {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .login-header img {
+            display: none;
+        }
+
+        .login-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-body {
+            padding: 45px 35px;
+        }
+
+        .form-control {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background-color: #f9f9f9;
+        }
+
+        .form-control::placeholder {
+            color: #999;
+        }
+
+        .form-control:focus {
+            border-color: #2f6b8f;
+            background-color: #fff;
+            box-shadow: 0 0 0 0.2rem rgba(47, 107, 143, 0.15);
+            outline: none;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+            font-size: 14px;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
+            color: #2f6b8f;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #2f6b8f 0%, #255a7a 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-login:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, #255a7a 0%, #2f6b8f 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(47, 107, 143, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-login span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .alert {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .input-group-text {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            color: #2f6b8f;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .input-group-text:hover {
+            background: #f0f0f0;
+            border-color: #2f6b8f;
+        }
+
+        .input-group .form-control {
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+        }
+
+        .input-group .form-control:focus {
+            border-right: none;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                border-radius: 15px;
+            }
+
+            .login-header {
+                padding: 40px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 24px;
+            }
+
+            .login-body {
+                padding: 30px 20px;
+            }
+
+            .form-control {
+                font-size: 16px;
+                padding: 12px 14px;
+            }
+
+            .btn-login {
+                padding: 12px;
+                font-size: 15px;
+            }
+
+            .login-wrapper {
+                flex-direction: column;
+                gap: 25px; /* mesmo gap em mobile */
+                padding: 25px 20px;
+            }
+
+            .login-logo {
+                width: 100%;
+                margin-top: 0;
+            }
+
+            .login-logo img {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-logo">
+            <img src="assets/QR_Combustivel.png" alt="QR Combustível" onerror="this.style.display='none'">
+        </div>
+
+        <div class="login-container">
+            <div class="login-header">
+                <h1>Sistema Administrativo de Abastecimento</h1>
+                <p></p>
+            </div>
+
+            <div class="login-body">
+                <div id="alertMessage" style="display: none;"></div>
+
+                <?php
+                // Exibir alerta de licença expirada
+                if (isset($_GET['erro']) && $_GET['erro'] == 'licenca_expirada') {
+                    echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle"></i> <strong>Acesso Negado!</strong><br>
+                            A licença do sistema expirou. Entre em contato com o administrador para renovar a licença.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>';
+                }
+                ?>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="login">
+                            <i class="fas fa-user"></i> Login
+                        </label>
+                        <input type="text" class="form-control" id="login" name="login" required placeholder="Seu login">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="senha">
+                            <i class="fas fa-lock"></i> Senha
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="senha" name="senha" required placeholder="Sua senha">
+                            <button class="input-group-text" type="button" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-login">
+                        <span><i class="fas fa-sign-in-alt"></i> ENTRAR</span>
+                    </button>
+                </form>
+                                <div class="text-center mt-3">
+                                        <a href="#" id="forgotPasswordLink" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Esqueci a senha</a>
+                                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Modal: Esqueci a senha -->
+        <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="forgotPasswordModalLabel">Recuperar senha</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Informe seu usuário ou e-mail cadastrado. Enviaremos um link para redefinir a senha.</p>
+                        <div id="forgotAlert" style="display:none;"></div>
+                        <div class="mb-3">
+                                <label for="forgotInput" class="form-label">Usuário ou E-mail</label>
+                                <input type="text" class="form-control" id="forgotInput" placeholder="Usuário ou E-mail">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="forgotSubmit">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/password_reset.js"></script>
+</body>
+</html>

@@ -1,0 +1,1487 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+require_once '../config/config.php';
+require_once '../config/database.php';
+require_once '../config/security.php';
+require_once '../config/access_control.php';
+
+// Validar sessão
+if (empty($_SESSION['token'])) {
+    die('Não autenticado');
+}
+
+$token = Security::validateToken($_SESSION['token']);
+if (!$token) {
+    $_SESSION = array();
+    session_destroy();
+    die('Sessão inválida');
+}
+
+$clienteId = $_SESSION['cliente_id'] ?? null;
+
+// Tipo de exportação
+$exportType = $_GET['export'] ?? 'excel';
+$orientacao = $_GET['orientacao'] ?? 'retrato'; // retrato ou paisagem
+
+// Filtros
+$tipoData = $_GET['tipoData'] ?? 'intervalo';
+$dataInicio = $_GET['dataInicio'] ?? '';
+$dataFim = $_GET['dataFim'] ?? '';
+$dataUnica = $_GET['dataUnica'] ?? '';
+
+$tipoHora = $_GET['tipoHora'] ?? 'intervalo';
+$horaInicio = $_GET['horaInicio'] ?? '';
+$horaFim = $_GET['horaFim'] ?? '';
+
+$idsFornecedor = isset($_GET['fornecedor']) && is_array($_GET['fornecedor']) ? array_map('intval', $_GET['fornecedor']) : [];
+$idCondutor = isset($_GET['condutor']) && $_GET['condutor'] !== '' ? intval($_GET['condutor']) : null;
+$idsSetor = isset($_GET['setor']) && is_array($_GET['setor']) ? array_map('intval', $_GET['setor']) : [];
+$idsProduto = isset($_GET['produto']) && is_array($_GET['produto']) ? array_map('intval', $_GET['produto']) : [];
+$placa = isset($_GET['placa']) && $_GET['placa'] !== '' ? $_GET['placa'] : null;
+
+// Processar quebras (pode vir como array ou string com vírgula)
+$quebras = [];
+if (isset($_GET['quebra'])) {
+    if (is_array($_GET['quebra'])) {
+        $quebras = $_GET['quebra'];
+    } else if (!empty($_GET['quebra'])) {
+        // Se vier como string separada por vírgula, dividir
+        $quebras = explode(',', $_GET['quebra']);
+    }
+}
+// Limpar valores vazios e trim
+$quebras = array_filter(array_map('trim', $quebras));
+
+// Processar colunas (pode vir como array ou string com vírgula)
+$colunas = [];
+if (isset($_GET['colunas'])) {
+    if (is_array($_GET['colunas'])) {
+        $colunas = $_GET['colunas'];
+    } else if (!empty($_GET['colunas'])) {
+        $colunas = explode(',', $_GET['colunas']);
+    }
+}
+// Limpar e usar padrão se vazio
+$colunas = array_filter(array_map('trim', $colunas));
+if (empty($colunas)) {
+    $colunas = ['data','hora','placa','condutor','setor','fornecedor','produto','km_atual','km_ant','km_rodado','litros','km_litro','vl_unit','vl_total'];
+}
+
+$ordenacao = $_GET['ordenacao'] ?? 'data_asc';
+
+// Conectar ao banco
+$db = new Database();
+$db->connect();
+
+// Construir WHERE
+$where = [];
+
+// Filtro de empresa
+if ($clienteId) {
+    $where[] = "cc.id_cliente = " . intval($clienteId);
+}
+
+// Filtros de data
+switch ($tipoData) {
+    case 'intervalo':
+        if (!empty($dataInicio) && !empty($dataFim)) {
+            $where[] = "((cc.`data` >= '" . $db->escape($dataInicio) . "') AND (cc.`data` <= '" . $db->escape($dataFim) . "'))";
+        }
+        break;
+    case 'unica':
+        if (!empty($dataUnica)) {
+            $where[] = "cc.`data` = '" . $db->escape($dataUnica) . "'";
+        }
+        break;
+    case 'maior':
+        if (!empty($dataInicio)) {
+            $where[] = "cc.`data` >= '" . $db->escape($dataInicio) . "'";
+        }
+        break;
+    case 'menor':
+        if (!empty($dataFim)) {
+            $where[] = "cc.`data` <= '" . $db->escape($dataFim) . "'";
+        }
+        break;
+}
+
+// Filtros de horário
+switch ($tipoHora) {
+    case 'intervalo':
+        if (!empty($horaInicio) && !empty($horaFim)) {
+            $where[] = "cc.hora BETWEEN '" . $db->escape($horaInicio) . "' AND '" . $db->escape($horaFim) . "'";
+        }
+        break;
+    case 'maior':
+        if (!empty($horaInicio)) {
+            $where[] = "cc.hora >= '" . $db->escape($horaInicio) . "'";
+        }
+        break;
+    case 'menor':
+        if (!empty($horaFim)) {
+            $where[] = "cc.hora <= '" . $db->escape($horaFim) . "'";
+        }
+        break;
+}
+
+// Filtro de fornecedor (múltiplo)
+if (!empty($idsFornecedor)) {
+    $where[] = "cc.id_fornecedor IN (" . implode(',', $idsFornecedor) . ")";
+}
+
+// Filtro de condutor
+if ($idCondutor) {
+    $where[] = "cc.id_condutor = " . intval($idCondutor);
+}
+
+// Filtro de setor (múltiplo)
+if (!empty($idsSetor)) {
+    $where[] = "v.id_setor IN (" . implode(',', $idsSetor) . ")";
+}
+
+// Filtro de produto (múltiplo)
+if (!empty($idsProduto)) {
+    $where[] = "cc.id_produto IN (" . implode(',', $idsProduto) . ")";
+}
+
+// Filtro de placa
+if ($placa) {
+    $where[] = "UPPER(v.placa) LIKE UPPER('%" . $db->escape($placa) . "%')";
+}
+
+// Se não houver filtros, adicionar condição sempre verdadeira
+$whereClause = !empty($where) ? implode(' AND ', $where) : '1=1';
+
+// Construir ordenação baseada nas quebras selecionadas
+$orderBy = '';
+if (!empty($quebras)) {
+    $orderFields = [];
+    foreach ($quebras as $quebra) {
+        switch ($quebra) {
+            case 'fornecedor':
+                $orderFields[] = 'nome_fant';
+                break;
+            case 'setor':
+                $orderFields[] = 'setor';
+                break;
+            case 'produto':
+                $orderFields[] = 'produto';
+                break;
+            case 'placa':
+                $orderFields[] = 'placa';
+                break;
+        }
+    }
+    // Adicionar data e hora ao final
+    $orderFields[] = 'data';
+    $orderFields[] = 'hora';
+    $orderBy = implode(' ASC, ', $orderFields) . ' ASC';
+} else {
+    // Ordenação padrão ou por seleção manual
+    switch ($ordenacao) {
+        case 'data_asc':
+            $orderBy = 'data ASC, hora ASC';
+            break;
+        case 'data_desc':
+            $orderBy = 'data DESC, hora DESC';
+            break;
+        case 'placa_asc':
+            $orderBy = 'placa ASC, data ASC, hora ASC';
+            break;
+        case 'placa_desc':
+            $orderBy = 'placa DESC, data DESC, hora DESC';
+            break;
+        case 'fornecedor_asc':
+            $orderBy = 'nome_fant ASC, data ASC, hora ASC';
+            break;
+        case 'fornecedor_desc':
+            $orderBy = 'nome_fant DESC, data DESC, hora DESC';
+            break;
+        case 'setor_asc':
+            $orderBy = 'setor ASC, placa ASC, data ASC, hora ASC';
+            break;
+        case 'setor_desc':
+            $orderBy = 'setor DESC, placa DESC, data DESC, hora DESC';
+            break;
+        case 'produto_asc':
+            $orderBy = 'produto ASC, data ASC, hora ASC';
+            break;
+        case 'produto_desc':
+            $orderBy = 'produto DESC, data DESC, hora DESC';
+            break;
+        default:
+            $orderBy = 'data ASC, hora ASC';
+            break;
+    }
+}
+
+// Query principal
+$sql = "WITH res AS (
+            SELECT 
+                cc.id_cliente,
+                cc.id_veiculo,
+                cc.id_fornecedor,
+                v.placa AS placa, 
+                cc.`data` AS data, 
+                cc.hora AS hora, 
+                cc.km_veiculo AS km_veic_atu, 
+                CASE
+                    WHEN km_veiculo_ant IS NULL THEN LAG(km_veiculo) OVER (ORDER BY cc.id_cliente, cc.id_veiculo, cc.`data`, cc.hora)
+                    ELSE km_veiculo_ant
+                END AS km_veic_ant,
+                cc.litragem AS litragem, 
+                f.nome_fantasia AS nome_fant, 
+                c.nome AS condutor, 
+                s.descricao AS setor, 
+                p.descricao AS produto, 
+                cc.valor_unitario AS vl_unit, 
+                cc.valor_total AS vl_total 
+            FROM consumo_combustivel AS cc 
+            INNER JOIN veiculo v ON v.id_veiculo = cc.id_veiculo 
+            INNER JOIN setor s ON s.id_setor = v.id_setor 
+            INNER JOIN condutor c ON c.id_condutor = cc.id_condutor 
+            INNER JOIN produto p ON cc.id_produto = p.id_produto 
+            INNER JOIN fornecedor f ON f.id_fornecedor = cc.id_fornecedor 
+            WHERE $whereClause
+        )
+        SELECT
+            res.placa, 
+            res.data, 
+            res.hora, 
+            res.km_veic_atu, 
+            res.km_veic_ant, 
+            (res.km_veic_atu - res.km_veic_ant) AS km_rodado, 
+            ROUND(((res.km_veic_atu - res.km_veic_ant) / litragem), 2) AS km_litro, 
+            res.litragem, 
+            res.nome_fant, 
+            res.condutor, 
+            res.setor, 
+            res.produto, 
+            res.vl_unit, 
+            res.vl_total 
+        FROM res
+        ORDER BY $orderBy";
+
+$result = $db->query($sql);
+
+if (!$result) {
+    die('Erro ao buscar dados: ' . $db->getError());
+}
+
+$extratos = [];
+while ($row = $result->fetch_assoc()) {
+    $extratos[] = $row;
+}
+
+// Estatísticas totais
+$sqlStats = "WITH res AS (
+                SELECT 
+                    cc.id_cliente,
+                    cc.id_veiculo,
+                    v.placa AS placa, 
+                    cc.`data` AS data, 
+                    cc.hora AS hora, 
+                    cc.km_veiculo AS km_veic_atu, 
+                    CASE
+                        WHEN km_veiculo_ant IS NULL THEN LAG(km_veiculo) OVER (ORDER BY cc.id_cliente, cc.id_veiculo, cc.`data`, cc.hora)
+                        ELSE km_veiculo_ant
+                    END AS km_veic_ant,
+                    cc.litragem AS litragem, 
+                    cc.valor_total AS vl_total 
+                FROM consumo_combustivel AS cc 
+                INNER JOIN veiculo v ON v.id_veiculo = cc.id_veiculo 
+                INNER JOIN setor s ON s.id_setor = v.id_setor 
+                INNER JOIN condutor c ON c.id_condutor = cc.id_condutor 
+                INNER JOIN produto p ON cc.id_produto = p.id_produto 
+                INNER JOIN fornecedor f ON f.id_fornecedor = cc.id_fornecedor 
+                WHERE $whereClause
+            )
+            SELECT 
+                COUNT(*) AS total_abastecimentos,
+                SUM(res.litragem) AS total_litros,
+                SUM(res.vl_total) AS total_valor,
+                AVG(res.vl_total) AS media_valor,
+                SUM(res.km_veic_atu - res.km_veic_ant) AS total_km_rodado,
+                AVG((res.km_veic_atu - res.km_veic_ant) / res.litragem) AS media_km_litro
+            FROM res";
+$resultStats = $db->query($sqlStats);
+$stats = $resultStats->fetch_assoc();
+
+// Garantir que stats tenha valores padrão se vazio
+if (empty($stats['total_abastecimentos'])) {
+    $stats = [
+        'total_abastecimentos' => 0,
+        'total_litros' => 0,
+        'total_valor' => 0,
+        'media_valor' => 0,
+        'total_km_rodado' => 0,
+        'media_km_litro' => 0
+    ];
+}
+
+// Preparar textos dos filtros
+$filtrosTexto = preparar_filtros_texto($db, $tipoData, $dataInicio, $dataFim, $dataUnica, $tipoHora, $horaInicio, $horaFim, $idsFornecedor, $idCondutor, $idsSetor, $idsProduto, $placa);
+
+// Exportar
+if ($exportType === 'excel') {
+    exportarExcel($extratos, $stats, $quebras, $colunas);
+} else if ($exportType === 'pdf') {
+    exportarPDF($extratos, $stats, $filtrosTexto, $quebras, $clienteId, $colunas, $orientacao);
+}
+
+function preparar_filtros_texto($db, $tipoData, $dataInicio, $dataFim, $dataUnica, $tipoHora, $horaInicio, $horaFim, $idsFornecedor, $idCondutor, $idsSetor, $idsProduto, $placa) {
+    $filtros = [];
+    
+    // Filtro de data
+    switch ($tipoData) {
+        case 'intervalo':
+            if (!empty($dataInicio) && !empty($dataFim)) {
+                $filtros['data'] = date('d/m/Y', strtotime($dataInicio)) . ' a ' . date('d/m/Y', strtotime($dataFim));
+            } else {
+                $filtros['data'] = 'Todos';
+            }
+            break;
+        case 'unica':
+            $filtros['data'] = !empty($dataUnica) ? date('d/m/Y', strtotime($dataUnica)) : 'Todos';
+            break;
+        case 'maior':
+            $filtros['data'] = !empty($dataInicio) ? 'Maior que ' . date('d/m/Y', strtotime($dataInicio)) : 'Todos';
+            break;
+        case 'menor':
+            $filtros['data'] = !empty($dataFim) ? 'Menor que ' . date('d/m/Y', strtotime($dataFim)) : 'Todos';
+            break;
+    }
+    
+    // Filtro de horário
+    switch ($tipoHora) {
+        case 'intervalo':
+            if (!empty($horaInicio) && !empty($horaFim)) {
+                $filtros['horario'] = substr($horaInicio, 0, 5) . ' a ' . substr($horaFim, 0, 5);
+            } else {
+                $filtros['horario'] = 'Todos';
+            }
+            break;
+        case 'maior':
+            $filtros['horario'] = !empty($horaInicio) ? 'A partir de ' . substr($horaInicio, 0, 5) : 'Todos';
+            break;
+        case 'menor':
+            $filtros['horario'] = !empty($horaFim) ? 'Até ' . substr($horaFim, 0, 5) : 'Todos';
+            break;
+    }
+    
+    // Filtro de fornecedor (múltiplo)
+    if (!empty($idsFornecedor)) {
+        $ids = implode(',', $idsFornecedor);
+        $sqlFornecedor = "SELECT nome_fantasia FROM fornecedor WHERE id_fornecedor IN ($ids)";
+        $resultFornecedor = $db->query($sqlFornecedor);
+        $nomes = [];
+        while ($row = $resultFornecedor->fetch_assoc()) {
+            $nomes[] = $row['nome_fantasia'];
+        }
+        $filtros['fornecedor'] = !empty($nomes) ? implode(', ', $nomes) : 'Todos';
+    } else {
+        $filtros['fornecedor'] = 'Todos';
+    }
+    
+    // Filtro de condutor
+    if ($idCondutor) {
+        $sqlCondutor = "SELECT nome FROM condutor WHERE id_condutor = $idCondutor";
+        $resultCondutor = $db->query($sqlCondutor);
+        if ($resultCondutor && $condutor = $resultCondutor->fetch_assoc()) {
+            $filtros['condutor'] = $condutor['nome'];
+        } else {
+            $filtros['condutor'] = 'Todos';
+        }
+    } else {
+        $filtros['condutor'] = 'Todos';
+    }
+    
+    // Filtro de setor (múltiplo)
+    if (!empty($idsSetor)) {
+        $ids = implode(',', $idsSetor);
+        $sqlSetor = "SELECT descricao FROM setor WHERE id_setor IN ($ids)";
+        $resultSetor = $db->query($sqlSetor);
+        $nomes = [];
+        while ($row = $resultSetor->fetch_assoc()) {
+            $nomes[] = $row['descricao'];
+        }
+        $filtros['setor'] = !empty($nomes) ? implode(', ', $nomes) : 'Todos';
+    } else {
+        $filtros['setor'] = 'Todos';
+    }
+    
+    // Filtro de produto (múltiplo)
+    if (!empty($idsProduto)) {
+        $ids = implode(',', $idsProduto);
+        $sqlProduto = "SELECT descricao FROM produto WHERE id_produto IN ($ids)";
+        $resultProduto = $db->query($sqlProduto);
+        $nomes = [];
+        while ($row = $resultProduto->fetch_assoc()) {
+            $nomes[] = $row['descricao'];
+        }
+        $filtros['produto'] = !empty($nomes) ? implode(', ', $nomes) : 'Todos';
+    } else {
+        $filtros['produto'] = 'Todos';
+    }
+    
+    // Filtro de placa
+    $filtros['placa'] = !empty($placa) ? $placa : 'Todos';
+    
+    return $filtros;
+}
+
+function exportarExcel($extratos, $stats, $quebras, $colunas) {
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=extrato_abastecimento_' . date('Y-m-d_His') . '.csv');
+    
+    $output = fopen('php://output', 'w');
+    
+    // BOM para UTF-8
+    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+    
+    // Cabeçalhos de estatísticas
+    fputcsv($output, ['RESUMO DO RELATÓRIO - EXTRATO DE ABASTECIMENTO'], ';');
+    fputcsv($output, ['Total de Abastecimentos', $stats['total_abastecimentos']], ';');
+    fputcsv($output, ['Total de Litros', number_format($stats['total_litros'], 2, ',', '.')], ';');
+    fputcsv($output, ['Total KM Rodados', number_format($stats['total_km_rodado'], 0, ',', '.')], ';');
+    fputcsv($output, ['Média KM/Litro', number_format($stats['media_km_litro'], 2, ',', '.')], ';');
+    fputcsv($output, ['Valor Total', 'R$ ' . number_format($stats['total_valor'], 2, ',', '.')], ';');
+    fputcsv($output, ['Valor Médio', 'R$ ' . number_format($stats['media_valor'], 2, ',', '.')], ';');
+    fputcsv($output, [], ';');
+    
+    // Mapear quebras para nomes de colunas
+    $quebrasColunas = [];
+    foreach ($quebras as $quebra) {
+        if ($quebra === 'fornecedor') $quebrasColunas[] = 'fornecedor';
+        else if ($quebra === 'setor') $quebrasColunas[] = 'setor';
+        else if ($quebra === 'produto') $quebrasColunas[] = 'produto';
+        else if ($quebra === 'placa') $quebrasColunas[] = 'placa';
+    }
+    
+    // Filtrar colunas: remover as que são quebras
+    $colunasExibir = array_filter($colunas, function($col) use ($quebrasColunas) {
+        return !in_array($col, $quebrasColunas);
+    });
+    
+    // Mapa de colunas disponíveis
+    $colunasDisponiveis = [
+        'data' => 'Data',
+        'hora' => 'Hora',
+        'placa' => 'Placa',
+        'condutor' => 'Condutor',
+        'setor' => 'Setor',
+        'fornecedor' => 'Fornecedor',
+        'produto' => 'Produto',
+        'km_atual' => 'KM Atual',
+        'km_ant' => 'KM Ant',
+        'km_rodado' => 'KM Rodado',
+        'litros' => 'Litros',
+        'km_litro' => 'KM/Litro',
+        'vl_unit' => 'Valor Unit',
+        'vl_total' => 'Valor Total'
+    ];
+    
+    // Cabeçalho da tabela (apenas colunas selecionadas, excluindo quebras)
+    $cabecalho = [];
+    foreach ($colunasExibir as $col) {
+        if (isset($colunasDisponiveis[$col])) {
+            $cabecalho[] = $colunasDisponiveis[$col];
+        }
+    }
+    fputcsv($output, $cabecalho, ';');
+    
+    // Dados com quebras hierárquicas
+    $gruposAtuais = [];
+    $totaisNiveis = [];
+    
+    // Função helper para gerar linha de subtotal
+    $gerarLinhaSubtotal = function($titulo, $totais, $colunasExibir) {
+        $linha = [];
+        $totalInserido = false;
+        
+        foreach ($colunasExibir as $col) {
+            if (!$totalInserido) {
+                $linha[] = $titulo;
+                $totalInserido = true;
+            } else {
+                switch ($col) {
+                    case 'km_rodado':
+                        $linha[] = number_format($totais['kmRodado'], 0, ',', '.');
+                        break;
+                    case 'litros':
+                        $linha[] = number_format($totais['litros'], 2, ',', '.');
+                        break;
+                    case 'vl_total':
+                        $linha[] = 'R$ ' . number_format($totais['valor'], 2, ',', '.');
+                        break;
+                    default:
+                        $linha[] = '';
+                        break;
+                }
+            }
+        }
+        return $linha;
+    };
+    
+    foreach ($extratos as $item) {
+        $camposQuebra = [];
+        
+        // Determinar campos de quebra (ordem = hierarquia)
+        foreach ($quebras as $quebra) {
+            $valor = '';
+            switch($quebra) {
+                case 'fornecedor':
+                    $valor = $item['nome_fant'];
+                    break;
+                case 'setor':
+                    $valor = $item['setor'];
+                    break;
+                case 'produto':
+                    $valor = $item['produto'];
+                    break;
+                case 'placa':
+                    $valor = $item['placa'];
+                    break;
+            }
+            if ($valor) {
+                $camposQuebra[] = ['tipo' => $quebra, 'valor' => $valor];
+            }
+        }
+        
+        // Verificar mudanças de nível hierárquico
+        $nivelMudanca = -1;
+        for ($i = 0; $i < count($camposQuebra); $i++) {
+            if (!isset($gruposAtuais[$i]) || $gruposAtuais[$i]['valor'] !== $camposQuebra[$i]['valor']) {
+                $nivelMudanca = $i;
+                break;
+            }
+        }
+        
+        // Se houve mudança, totalizar níveis (do mais profundo ao nível de mudança)
+        if ($nivelMudanca >= 0 && count($gruposAtuais) > 0) {
+            for ($i = count($gruposAtuais) - 1; $i >= $nivelMudanca; $i--) {
+                if (isset($totaisNiveis[$i]) && $totaisNiveis[$i]['count'] > 0) {
+                    fputcsv($output, [], ';');
+                    $indentacao = str_repeat('  ', $i);
+                    $titulo = $indentacao . 'SUBTOTAL ' . strtoupper($gruposAtuais[$i]['tipo']) . ': ' . $gruposAtuais[$i]['valor'];
+                    fputcsv($output, $gerarLinhaSubtotal($titulo, $totaisNiveis[$i], $colunasExibir), ';');
+                }
+            }
+            
+            // Resetar a partir do nível de mudança
+            $gruposAtuais = array_slice($gruposAtuais, 0, $nivelMudanca);
+            $totaisNiveis = array_slice($totaisNiveis, 0, $nivelMudanca);
+        }
+        
+        // Inserir cabeçalhos dos novos níveis
+        for ($i = count($gruposAtuais); $i < count($camposQuebra); $i++) {
+            $gruposAtuais[] = $camposQuebra[$i];
+            $totaisNiveis[] = ['litros' => 0, 'valor' => 0, 'kmRodado' => 0, 'count' => 0];
+            
+            fputcsv($output, [], ';');
+            $indentacao = str_repeat('  ', $i);
+            fputcsv($output, [$indentacao . strtoupper($camposQuebra[$i]['tipo']) . ': ' . $camposQuebra[$i]['valor']], ';');
+        }
+        
+        // Preparar dados da linha conforme colunas selecionadas (excluindo quebras)
+        $linha = [];
+        foreach ($colunasExibir as $col) {
+            switch ($col) {
+                case 'data':
+                    $linha[] = date('d/m/Y', strtotime($item['data']));
+                    break;
+                case 'hora':
+                    $linha[] = substr($item['hora'], 0, 5);
+                    break;
+                case 'placa':
+                    $linha[] = $item['placa'];
+                    break;
+                case 'condutor':
+                    $linha[] = $item['condutor'];
+                    break;
+                case 'setor':
+                    $linha[] = $item['setor'];
+                    break;
+                case 'fornecedor':
+                    $linha[] = $item['nome_fant'];
+                    break;
+                case 'produto':
+                    $linha[] = $item['produto'];
+                    break;
+                case 'km_atual':
+                    $linha[] = number_format($item['km_veic_atu'], 0, ',', '.');
+                    break;
+                case 'km_ant':
+                    $linha[] = number_format($item['km_veic_ant'], 0, ',', '.');
+                    break;
+                case 'km_rodado':
+                    $linha[] = number_format($item['km_rodado'], 0, ',', '.');
+                    break;
+                case 'litros':
+                    $linha[] = number_format($item['litragem'], 2, ',', '.');
+                    break;
+                case 'km_litro':
+                    $linha[] = number_format($item['km_litro'], 2, ',', '.');
+                    break;
+                case 'vl_unit':
+                    $linha[] = number_format($item['vl_unit'], 2, ',', '.');
+                    break;
+                case 'vl_total':
+                    $linha[] = number_format($item['vl_total'], 2, ',', '.');
+                    break;
+            }
+        }
+        fputcsv($output, $linha, ';');
+        
+        // Acumular totais de todos os níveis
+        if (count($quebras) > 0) {
+            for ($i = 0; $i < count($totaisNiveis); $i++) {
+                $totaisNiveis[$i]['litros'] += $item['litragem'];
+                $totaisNiveis[$i]['valor'] += $item['vl_total'];
+                $totaisNiveis[$i]['kmRodado'] += $item['km_rodado'];
+                $totaisNiveis[$i]['count']++;
+            }
+        }
+    }
+    
+    // Totalizar todos os níveis restantes ao final
+    if (count($quebras) > 0 && count($gruposAtuais) > 0) {
+        for ($i = count($gruposAtuais) - 1; $i >= 0; $i--) {
+            if (isset($totaisNiveis[$i]) && $totaisNiveis[$i]['count'] > 0) {
+                fputcsv($output, [], ';');
+                $indentacao = str_repeat('  ', $i);
+                $titulo = $indentacao . 'SUBTOTAL ' . strtoupper($gruposAtuais[$i]['tipo']) . ': ' . $gruposAtuais[$i]['valor'];
+                fputcsv($output, $gerarLinhaSubtotal($titulo, $totaisNiveis[$i], $colunasExibir), ';');
+            }
+        }
+    }
+    
+    // Total geral
+    fputcsv($output, [], ';');
+    fputcsv($output, ['=== TOTAL GERAL ==='], ';');
+    $totaisGerais = [
+        'kmRodado' => $stats['total_km_rodado'],
+        'litros' => $stats['total_litros'],
+        'valor' => $stats['total_valor']
+    ];
+    fputcsv($output, $gerarLinhaSubtotal('TOTAL GERAL', $totaisGerais, $colunasExibir), ';');
+    
+    fclose($output);
+    exit;
+}
+
+function exportarPDF($extratos, $stats, $filtros, $quebras, $clienteId, $colunas, $orientacao = 'retrato') {
+    require_once '../vendor/autoload.php';
+    
+    // Função helper para converter hex para RGB
+    $hexToRgb = function($hex) {
+        $hex = str_replace('#', '', $hex);
+        return [
+            hexdec(substr($hex, 0, 2)),
+            hexdec(substr($hex, 2, 2)),
+            hexdec(substr($hex, 4, 2))
+        ];
+    };
+    
+    // Cores do projeto
+    $corPrimaria1 = $hexToRgb(COLOR_PRIMARY_1);  // #ced4da (cinza claro)
+    $corPrimaria2 = $hexToRgb(COLOR_PRIMARY_2);  // #2f6b8f (azul escuro)
+    $corSecundaria1 = $hexToRgb(COLOR_SECONDARY_1);  // #c1c3c7 (cinza)
+    $corSecundaria2 = $hexToRgb(COLOR_SECONDARY_2);  // #f59b4c (laranja)
+    $corSecundaria3 = $hexToRgb(COLOR_SECONDARY_3);  // #1f5734 (verde)
+    
+    // Definir orientação: P = Portrait (Retrato), L = Landscape (Paisagem)
+    $pdfOrientation = ($orientacao === 'paisagem') ? 'L' : 'P';
+    
+    // Mapear quebras para nomes de colunas
+    $quebrasColunas = [];
+    foreach ($quebras as $quebra) {
+        if ($quebra === 'fornecedor') $quebrasColunas[] = 'fornecedor';
+        else if ($quebra === 'setor') $quebrasColunas[] = 'setor';
+        else if ($quebra === 'produto') $quebrasColunas[] = 'produto';
+        else if ($quebra === 'placa') $quebrasColunas[] = 'placa';
+    }
+    
+    // Filtrar colunas: remover as que são quebras
+    $colunasExibir = array_filter($colunas, function($col) use ($quebrasColunas) {
+        return !in_array($col, $quebrasColunas);
+    });
+    // Reindexar array
+    $colunasExibir = array_values($colunasExibir);
+    
+    // Buscar informações do cliente
+    $db = new Database();
+    $db->connect();
+    
+    $sql = "SELECT razao_social, nome_fantasia, logo_path FROM clientes WHERE id = ?";
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param('i', $clienteId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $cliente = $result->fetch_assoc();
+    $stmt->close();
+    
+    $nomeCliente = $cliente['nome_fantasia'] ?? $cliente['razao_social'] ?? 'Cliente';
+    $logoPath = $cliente['logo_path'] ?? null;
+    
+    // Criar classe customizada
+    class MYPDF extends TCPDF {
+        private $clientName;
+        private $logoPath;
+        private $filtros;
+        
+        public function setClientInfo($name, $logo, $filtros) {
+            $this->clientName = $name;
+            $this->logoPath = $logo;
+            $this->filtros = $filtros;
+        }
+        
+        public function Header() {
+            // Header sem fundo colorido
+            $headerWidth = ($this->CurOrientation == 'L') ? 277 : 190;
+            
+            $logoSize = 14;
+            $logoX = 12;
+            $logoY = 5;
+            $hasLogo = false;
+            
+            if ($this->logoPath && file_exists(__DIR__ . '/../' . $this->logoPath)) {
+                try {
+                    $this->Image(__DIR__ . '/../' . $this->logoPath, $logoX, $logoY, $logoSize, $logoSize, '', '', '', true, 150, '', false, false, 0);
+                    $hasLogo = true;
+                } catch (Exception $e) {
+                    // Continua sem logo
+                }
+            }
+            
+            $this->SetTextColor(0, 0, 0);
+            if ($hasLogo) {
+                $this->SetXY($logoX + $logoSize + 4, 6.5);
+                $this->SetFont('helvetica', 'B', 13);
+                $this->Cell(0, 6, $this->clientName, 0, 1, 'L');
+                $this->SetX($logoX + $logoSize + 4);
+                $this->SetFont('helvetica', 'B', 11);
+                $this->Cell(0, 5, 'Extrato de Abastecimento', 0, 1, 'L');
+            } else {
+                $this->SetXY(10, 14);
+                $this->SetFont('helvetica', 'B', 13);
+                $this->Cell($headerWidth, 6, $this->clientName, 0, 1, 'C');
+                $this->SetX(10);
+                $this->SetFont('helvetica', 'B', 11);
+                $this->Cell($headerWidth, 5, 'Extrato de Abastecimento', 0, 1, 'C');
+            }
+            
+            // Calcular posição inicial dos filtros
+            $alturaFiltros = 0; // 6 linhas de filtros
+            $minY = $hasLogo ? ($logoY + $logoSize + 2) : ($this->GetY() + 2);
+            $filtrosStartY = $hasLogo ? 6.5 : 10;
+            $filtrosEndY = $filtrosStartY + $alturaFiltros;
+            $separatorY = ($filtrosEndY > $minY) ? $filtrosEndY : $minY;
+            
+            if ($hasLogo) {
+                $this->SetY($logoY + $logoSize);
+            }
+            
+            // Exibir filtros no lado direito (mesmo modelo do relatorio_consumo)
+            $filtrosX = ($this->CurOrientation == 'L') ? 200 : 135;
+            $this->SetXY($filtrosX, $filtrosStartY);
+            $this->SetFont('helvetica', '', 7);
+            $this->SetTextColor(80, 80, 80);
+            
+            $this->Cell(0, 2, 'Data: ' . ($this->filtros['data'] ?? 'Todos'), 0, 1, 'R');
+            $this->SetX($filtrosX);
+            $this->Cell(0, 2, 'Horário: ' . ($this->filtros['horario'] ?? 'Todos'), 0, 1, 'R');
+            $this->SetX($filtrosX);
+            $this->Cell(0, 2, 'Fornecedor: ' . ($this->filtros['fornecedor'] ?? 'Todos'), 0, 1, 'R');
+            $this->SetX($filtrosX);
+            $this->Cell(0, 2, 'Setor: ' . ($this->filtros['setor'] ?? 'Todos'), 0, 1, 'R');
+            $this->SetX($filtrosX);
+            $this->Cell(0, 2, 'Produto: ' . ($this->filtros['produto'] ?? 'Todos'), 0, 1, 'R');
+            $this->SetX($filtrosX);
+            $this->Cell(0, 2, 'Placa: ' . ($this->filtros['placa'] ?? 'Todos'), 0, 1, 'R');
+            
+            $this->SetY($separatorY);
+            $this->Ln();
+        }
+        
+        public function Footer() {
+            $footerWidth = ($this->CurOrientation == 'L') ? 277 : 190;
+            $this->SetY(-10);
+            $this->SetDrawColor(200, 200, 200);
+            $this->SetLineWidth(0.2);
+            $this->Line(10, $this->GetY(), 10 + $footerWidth, $this->GetY());
+            $this->SetY(-10);
+            $this->SetFont('helvetica', '', 7);
+            $this->SetTextColor(120, 120, 120);
+            $this->Cell($footerWidth / 2, 10, 'Gerado em ' . date('d/m/Y \à\s H:i:s'), 0, 0, 'L');
+            $this->Cell($footerWidth / 2, 10, 'Página ' . $this->getAliasNumPage() . ' de ' . $this->getAliasNbPages(), 0, 0, 'R');
+        }
+    }
+    
+    $pdf = new MYPDF($pdfOrientation, 'mm', 'A4', true, 'UTF-8', false);
+    $pdf->setClientInfo($nomeCliente, $logoPath, $filtros);
+    
+    $pdf->SetCreator('Sistema de Abastecimento');
+    $pdf->SetTitle('Extrato de Abastecimento');
+    $pdf->SetMargins(10, 27, 10);
+    $pdf->SetAutoPageBreak(true, 15);
+    $pdf->AddPage();
+    
+    // Mapa base de larguras (valores de referência caso precise)
+    $largurasColunasBase = [
+        'data' => 18,
+        'hora' => 12,
+        'placa' => 18,
+        'condutor' => 35,
+        'setor' => 25,
+        'fornecedor' => 30,
+        'produto' => 20,
+        'km_atual' => 16,
+        'km_ant' => 16,
+        'km_rodado' => 16,
+        'litros' => 15,
+        'km_litro' => 14,
+        'vl_unit' => 18,
+        'vl_total' => 24
+    ];
+
+    // Auto-dimensionar larguras por conteúdo (títulos + dados)
+    // A4: Paisagem = 297mm largura - 20mm margens = 277mm | Retrato = 210mm largura - 20mm margens = 190mm
+    // A4: Retrato = 297mm altura, Paisagem = 210mm altura
+    $availableWidth = ($orientacao === 'paisagem') ? 277 : 190;
+    
+    // Calcular limites de quebra de página baseado na orientação
+    // Retrato: altura 297mm - margem superior 20mm - margem inferior 15mm = 262mm úteis
+    // Paisagem: altura 210mm - margem superior 20mm - margem inferior 15mm = 175mm úteis
+    $limiteQuebra1 = ($orientacao === 'paisagem') ? 198 : 275;  // Quebra para cabeçalhos de grupo
+    $limiteQuebra2 = ($orientacao === 'paisagem') ? 203 : 280;  // Quebra para linhas de dados
+    $maxLens = [];
+
+    // Função auxiliar para obter largura em 'caracteres visuais'
+    $strWidth = function($s) {
+        return mb_strwidth((string)$s, 'UTF-8');
+    };
+
+    // Títulos para cada coluna (mesma lógica do cabeçalho)
+    $titulos = [
+        'data' => 'Data', 'hora' => 'Hora', 'placa' => 'Placa', 'condutor' => 'Condutor',
+        'setor' => 'Setor', 'fornecedor' => 'Fornecedor', 'produto' => 'Produto',
+        'km_atual' => 'KM Atual', 'km_ant' => 'KM Ant.', 'km_rodado' => 'KM Rod.',
+        'litros' => 'Litros', 'km_litro' => 'KM/L', 'vl_unit' => 'Vl. Unit.', 'vl_total' => 'Vl. Total'
+    ];
+
+    // Calcular maior largura (caracteres) para cada coluna selecionada
+    foreach ($colunasExibir as $col) {
+        $max = isset($titulos[$col]) ? $strWidth($titulos[$col]) : 0;
+        foreach ($extratos as $item) {
+            $val = '';
+            switch ($col) {
+                case 'data': $val = date('d/m/Y', strtotime($item['data'])); break;
+                case 'hora': $val = substr($item['hora'], 0, 5); break;
+                case 'placa': $val = $item['placa']; break;
+                case 'condutor': $val = substr($item['condutor'], 0, 60); break;
+                case 'setor': $val = substr($item['setor'], 0, 60); break;
+                case 'fornecedor': $val = substr($item['nome_fant'], 0, 60); break;
+                case 'produto': $val = substr($item['produto'], 0, 60); break;
+                case 'km_atual': $val = number_format($item['km_veic_atu'] ?? 0, 0, ',', '.'); break;
+                case 'km_ant': $val = number_format($item['km_veic_ant'] ?? 0, 0, ',', '.'); break;
+                case 'km_rodado': $val = number_format($item['km_rodado'] ?? 0, 0, ',', '.'); break;
+                case 'litros': $val = number_format($item['litragem'] ?? 0, 2, ',', '.'); break;
+                case 'km_litro': $val = number_format($item['km_litro'] ?? 0, 2, ',', '.'); break;
+                case 'vl_unit': $val = number_format($item['vl_unit'] ?? 0, 2, ',', '.'); break;
+                case 'vl_total': $val = number_format($item['vl_total'] ?? 0, 2, ',', '.'); break;
+            }
+            $w = $strWidth($val);
+            if ($w > $max) $max = $w;
+        }
+        // garantir mínimo visual
+        if ($max < 3) $max = 3;
+        $maxLens[$col] = $max;
+    }
+
+    // Se não houver dados, usar larguras base
+    if (array_sum($maxLens) == 0) {
+        $largurasColunas = $largurasColunasBase;
+    } else {
+        // distribuir proporcionalmente ao comprimento visual
+        $sumLens = array_sum($maxLens);
+        $computed = [];
+        foreach ($colunasExibir as $col) {
+            $computed[$col] = ($maxLens[$col] / $sumLens) * $availableWidth;
+        }
+        // aplicar limites e reescalar para total = availableWidth
+        $minWidth = 10; // mm
+        $maxWidth = $availableWidth * 0.6;
+        $total = 0;
+        foreach ($computed as $col => $w) {
+            $w = max($minWidth, min($w, $maxWidth));
+            $computed[$col] = $w;
+            $total += $w;
+        }
+        if ($total > 0) {
+            $scale = $availableWidth / $total;
+            foreach ($computed as $col => $w) {
+                $computed[$col] = round($w * $scale, 2);
+            }
+        }
+        // fallback para colunas ausentes
+        $largurasColunas = [];
+        foreach ($colunasExibir as $col) {
+            $largurasColunas[$col] = $computed[$col] ?? ($largurasColunasBase[$col] ?? 18);
+        }
+    }
+
+    // Calcular largura total da tabela com as colunas selecionadas
+    $larguraTotal = 0;
+    foreach ($colunasExibir as $col) {
+        $larguraTotal += $largurasColunas[$col] ?? 0;
+    }
+
+    // Se não houver quebras, renderizar cabeçalho inicial
+    if (empty($quebras)) {
+        renderizarCabecalhoTabela($pdf, $colunasExibir, $largurasColunas);
+    }
+
+    // Dados com quebras hierárquicas
+    $gruposAtuais = [];
+    $totaisNiveis = [];
+    $fill = false;
+    
+    foreach ($extratos as $item) {
+        $camposQuebra = [];
+        
+        // Determinar campos de quebra (ordem = hierarquia)
+        foreach ($quebras as $quebra) {
+            $valor = '';
+            switch($quebra) {
+                case 'fornecedor':
+                    $valor = $item['nome_fant'];
+                    break;
+                case 'setor':
+                    $valor = $item['setor'];
+                    break;
+                case 'produto':
+                    $valor = $item['produto'];
+                    break;
+                case 'placa':
+                    $valor = $item['placa'];
+                    break;
+            }
+            if ($valor) {
+                $camposQuebra[] = ['tipo' => $quebra, 'valor' => $valor];
+            }
+        }
+        
+        // Verificar mudanças de nível hierárquico
+        $nivelMudanca = -1;
+        for ($i = 0; $i < count($camposQuebra); $i++) {
+            if (!isset($gruposAtuais[$i]) || $gruposAtuais[$i]['valor'] !== $camposQuebra[$i]['valor']) {
+                $nivelMudanca = $i;
+                break;
+            }
+        }
+        
+        // Totalizar níveis que mudaram (do mais profundo ao nível de mudança)
+        if ($nivelMudanca >= 0 && count($gruposAtuais) > 0) {
+            for ($i = count($gruposAtuais) - 1; $i >= $nivelMudanca; $i--) {
+                if (isset($totaisNiveis[$i]) && $totaisNiveis[$i]['count'] > 0) {
+                    renderizarTotalNivelPDF($pdf, $gruposAtuais[$i], $totaisNiveis[$i], $i, $colunasExibir, $largurasColunas, $limiteQuebra1, $orientacao);
+                }
+            }
+            
+            // Resetar a partir do nível de mudança
+            $gruposAtuais = array_slice($gruposAtuais, 0, $nivelMudanca);
+            $totaisNiveis = array_slice($totaisNiveis, 0, $nivelMudanca);
+            $fill = false;
+        }
+        
+        // Inserir cabeçalhos dos novos níveis
+        for ($i = count($gruposAtuais); $i < count($camposQuebra); $i++) {
+            $gruposAtuais[] = $camposQuebra[$i];
+            $totaisNiveis[] = ['litros' => 0, 'valor' => 0, 'kmRodado' => 0, 'count' => 0];
+            
+            // Verificar quebra de página antes de inserir cabeçalho de grupo
+            if ($pdf->GetY() > $limiteQuebra1) {
+                $pdf->AddPage();
+            }
+            
+            // Título da quebra no formato simplificado (ex: Setor => ADMINISTRAÇÃO) com cores suaves
+            $pdf->Ln(1);
+            
+            // Cores suaves para cada nível - verde para fornecedor, azul para demais
+            if ($camposQuebra[$i]['tipo'] === 'fornecedor') {
+                $corFundo = [220, 237, 226];  // Verde suave do projeto
+                $corTexto = [31, 87, 52];
+            } else {
+                $coresNivel = [
+                    ['fill' => [220, 230, 238], 'text' => [52, 73, 94]],    // Azul muito claro - Nível 0
+                    ['fill' => [206, 212, 218], 'text' => [52, 73, 94]],    // Cinza azulado - Nível 1
+                    ['fill' => [225, 235, 245], 'text' => [60, 80, 100]],   // Azul suave - Nível 2
+                    ['fill' => [235, 240, 245], 'text' => [70, 85, 100]]    // Azul muito suave - Nível 3
+                ];
+                $cor = $coresNivel[min($i, 3)];
+                $corFundo = $cor['fill'];
+                $corTexto = $cor['text'];
+            }
+            
+            $pdf->SetFont('helvetica', 'B', 9);
+            $pdf->SetFillColor($corFundo[0], $corFundo[1], $corFundo[2]);
+            $pdf->SetTextColor($corTexto[0], $corTexto[1], $corTexto[2]);
+            $pdf->SetDrawColor(200, 200, 200);
+            $pdf->SetLineWidth(0.1);
+            
+            $textoQuebra = ucfirst($camposQuebra[$i]['tipo']) . ' => ' . $camposQuebra[$i]['valor'];
+            $pdf->Cell($larguraTotal, 6, $textoQuebra, 1, 1, 'L', true);
+            $pdf->Ln(0.5);
+            
+            // Renderizar cabeçalho das colunas apenas no último nível de quebra
+            if ($i == count($camposQuebra) - 1) {
+                renderizarCabecalhoTabela($pdf, $colunasExibir, $largurasColunas);
+            }
+            $fill = false;
+        }
+        
+        // Verificar quebra de página (sem renderizar cabeçalho)
+        if ($pdf->GetY() > $limiteQuebra2) {
+            $pdf->AddPage();
+        }
+        
+        // Linha de dados
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->SetTextColor(44, 62, 80);
+        $pdf->SetFillColor(250, 251, 252);
+        $pdf->SetDrawColor(220, 220, 220);
+        $pdf->SetLineWidth(0.1);
+        
+        foreach ($colunasExibir as $col) {
+            $largura = $largurasColunas[$col];
+            switch ($col) {
+                case 'data':
+                    $pdf->Cell($largura, 5, date('d/m/Y', strtotime($item['data'])), 1, 0, 'C', $fill);
+                    break;
+                case 'hora':
+                    $pdf->Cell($largura, 5, substr($item['hora'], 0, 5), 1, 0, 'C', $fill);
+                    break;
+                case 'placa':
+                    $pdf->Cell($largura, 5, $item['placa'], 1, 0, 'C', $fill);
+                    break;
+                case 'condutor':
+                    $pdf->Cell($largura, 5, substr($item['condutor'], 0, 25), 1, 0, 'L', $fill);
+                    break;
+                case 'setor':
+                    $pdf->Cell($largura, 5, substr($item['setor'], 0, 18), 1, 0, 'L', $fill);
+                    break;
+                case 'fornecedor':
+                    $pdf->Cell($largura, 5, substr($item['nome_fant'], 0, 22), 1, 0, 'L', $fill);
+                    break;
+                case 'produto':
+                    $pdf->Cell($largura, 5, substr($item['produto'], 0, 15), 1, 0, 'L', $fill);
+                    break;
+                case 'km_atual':
+                    $pdf->Cell($largura, 5, number_format($item['km_veic_atu'], 0, ',', '.'), 1, 0, 'R', $fill);
+                    break;
+                case 'km_ant':
+                    $pdf->Cell($largura, 5, number_format($item['km_veic_ant'], 0, ',', '.'), 1, 0, 'R', $fill);
+                    break;
+                case 'km_rodado':
+                    $pdf->Cell($largura, 5, number_format($item['km_rodado'], 0, ',', '.'), 1, 0, 'R', $fill);
+                    break;
+                case 'litros':
+                    $pdf->Cell($largura, 5, number_format($item['litragem'], 2, ',', '.'), 1, 0, 'R', $fill);
+                    break;
+                case 'km_litro':
+                    $pdf->Cell($largura, 5, number_format($item['km_litro'], 2, ',', '.'), 1, 0, 'R', $fill);
+                    break;
+                case 'vl_unit':
+                    $pdf->Cell($largura, 5, number_format($item['vl_unit'], 2, ',', '.'), 1, 0, 'R', $fill);
+                    break;
+                case 'vl_total':
+                    $pdf->Cell($largura, 5, number_format($item['vl_total'], 2, ',', '.'), 1, 0, 'R', $fill);
+                    break;
+            }
+        }
+        $pdf->Ln();
+        
+        $fill = !$fill;
+        
+        // Acumular totais de todos os níveis
+        if (count($quebras) > 0) {
+            for ($i = 0; $i < count($totaisNiveis); $i++) {
+                $totaisNiveis[$i]['litros'] += $item['litragem'];
+                $totaisNiveis[$i]['valor'] += $item['vl_total'];
+                $totaisNiveis[$i]['kmRodado'] += $item['km_rodado'];
+                $totaisNiveis[$i]['count']++;
+            }
+        }
+    }
+    
+    // Totalizar todos os níveis restantes ao final
+    if (count($quebras) > 0 && count($gruposAtuais) > 0) {
+        for ($i = count($gruposAtuais) - 1; $i >= 0; $i--) {
+            if (isset($totaisNiveis[$i]) && $totaisNiveis[$i]['count'] > 0) {
+                renderizarTotalNivelPDF($pdf, $gruposAtuais[$i], $totaisNiveis[$i], $i, $colunasExibir, $largurasColunas, $limiteQuebra1, $orientacao);
+            }
+        }
+    }
+    
+    // Total geral
+    renderizarTotalGeral($pdf, $stats, $colunasExibir, $largurasColunas, $limiteQuebra1, $orientacao, false); // false = não renderizar resumo estatístico ainda
+    
+    // Resumo por quebras (tabela consolidada) - antes do resumo estatístico
+    if (count($quebras) > 0) {
+        renderizarResumoQuebras($pdf, $extratos, $quebras, $orientacao);
+    }
+    
+    // Resumo estatístico por último
+    renderizarResumoEstatistico($pdf, $stats, $orientacao);
+    
+    try {
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        $filename = 'extrato_abastecimento_' . date('Y-m-d_His') . '.pdf';
+        $pdf->Output($filename, 'I');
+    } catch (Exception $e) {
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        http_response_code(500);
+        die('Erro ao gerar PDF: ' . $e->getMessage());
+    }
+    exit;
+}
+
+function renderizarCabecalhoTabela($pdf, $colunas, $largurasColunas) {
+    $pdf->SetFont('helvetica', 'B', 8);
+    // Tom intermediário entre primária 1 e 2 para suavizar (#5a92b8)
+    $pdf->SetFillColor(90, 146, 184);
+    $pdf->SetTextColor(255, 255, 255);
+    $pdf->SetDrawColor(74, 124, 158);
+    $pdf->SetLineWidth(0.3);
+    
+    $titulos = [
+        'data' => 'Data',
+        'hora' => 'Hora',
+        'placa' => 'Placa',
+        'condutor' => 'Condutor',
+        'setor' => 'Setor',
+        'fornecedor' => 'Fornecedor',
+        'produto' => 'Produto',
+        'km_atual' => 'KM Atual',
+        'km_ant' => 'KM Ant.',
+        'km_rodado' => 'KM Rod.',
+        'litros' => 'Litros',
+        'km_litro' => 'KM/L',
+        'vl_unit' => 'Vl. Unit.',
+        'vl_total' => 'Vl. Total'
+    ];
+    
+    foreach ($colunas as $col) {
+        if (isset($titulos[$col]) && isset($largurasColunas[$col])) {
+            $pdf->Cell($largurasColunas[$col], 6, $titulos[$col], 1, 0, 'C', true);
+        }
+    }
+    $pdf->Ln();
+}
+
+function renderizarTotalNivelPDF($pdf, $campo, $totais, $nivel, $colunas, $largurasColunas, $limiteQuebra = 245, $orientacao = 'retrato') {
+    // Linha de soma (estilo igual à linha de dados, mas em negrito e com fundo bege)
+    $pdf->SetFont('helvetica', 'B', 8);
+    $pdf->SetTextColor(44, 62, 80);
+    $pdf->SetFillColor(255, 248, 220);  // Bege claro
+    $pdf->SetDrawColor(220, 220, 220);
+    $pdf->SetLineWidth(0.1);
+    
+    // Renderizar células seguindo a estrutura da tabela
+    $primeiraColuna = true;
+    foreach ($colunas as $col) {
+        $largura = $largurasColunas[$col];
+        
+        if ($primeiraColuna) {
+            // Primeira coluna: exibir "Soma"
+            $pdf->Cell($largura, 5, 'Soma', 1, 0, 'L', true);
+            $primeiraColuna = false;
+        } else {
+            // Outras colunas: vazio ou valores
+            switch ($col) {
+                case 'km_rodado':
+                    $pdf->Cell($largura, 5, number_format($totais['kmRodado'], 0, ',', '.'), 1, 0, 'R', true);
+                    break;
+                case 'litros':
+                    $pdf->Cell($largura, 5, number_format($totais['litros'], 2, ',', '.'), 1, 0, 'R', true);
+                    break;
+                case 'vl_total':
+                    $pdf->Cell($largura, 5, number_format($totais['valor'], 2, ',', '.'), 1, 0, 'R', true);
+                    break;
+                default:
+                    $pdf->Cell($largura, 5, '', 1, 0, 'C', true);
+                    break;
+            }
+        }
+    }
+    
+    $pdf->Ln();
+    $pdf->Ln(0.5);
+}
+
+function renderizarTotalGeral($pdf, $stats, $colunas, $largurasColunas, $limiteQuebra = 245, $orientacao = 'retrato', $incluirResumo = true) {
+    if ($pdf->GetY() > $limiteQuebra) {
+        $pdf->AddPage();
+    }
+    
+    $pdf->Ln(3);
+    $pdf->SetFont('helvetica', 'B', 8);
+    // Tom intermediário para suavizar (#5a92b8)
+    $pdf->SetFillColor(90, 146, 184);
+    $pdf->SetTextColor(255, 255, 255);
+    $pdf->SetDrawColor(74, 124, 158);
+    $pdf->SetLineWidth(0.3);
+    
+    // Estrutura fixa independente das colunas da tabela principal
+    // Orientação determina larguras disponíveis
+    $availableWidth = ($orientacao === 'paisagem') ? 277 : 190;
+    
+    // Estrutura fixa: Título (60%) + KM Rodado (13.33%) + Litros (13.33%) + Valor Total (13.33%)
+    $larguraTitulo = $availableWidth * 0.60;
+    $larguraValor = $availableWidth * 0.1333;
+    
+    $pdf->Cell($larguraTitulo, 6, 'TOTAL GERAL', 1, 0, 'R', true);
+    $pdf->Cell($larguraValor, 6, number_format($stats['total_km_rodado'], 0, ',', '.'), 1, 0, 'R', true);
+    $pdf->Cell($larguraValor, 6, number_format($stats['total_litros'], 2, ',', '.'), 1, 0, 'R', true);
+    $pdf->Cell($larguraValor, 6, 'R$ ' . number_format($stats['total_valor'], 2, ',', '.'), 1, 0, 'R', true);
+    
+    $pdf->Ln();
+}
+
+function renderizarResumoEstatistico($pdf, $stats, $orientacao = 'retrato') {
+    $pdf->Ln(8);
+    
+    // Título do resumo com tom azul suave do projeto
+    $pdf->SetFont('helvetica', 'B', 11);
+    $pdf->SetFillColor(220, 230, 238);  // Azul muito claro
+    $pdf->SetTextColor(52, 73, 94);  // Azul escuro
+    $pdf->SetDrawColor(193, 195, 199);
+    $pdf->SetLineWidth(0.2);
+    $pdf->Cell(0, 8, 'RESUMO ESTATÍSTICO', 1, 1, 'C', true);
+    $pdf->Ln(3);
+    
+    // Layout em cards/blocos para as estatísticas
+    $availableWidth = ($orientacao === 'paisagem') ? 277 : 190;
+    $cardWidth = $availableWidth / 3;
+    
+    $pdf->SetFont('helvetica', 'B', 8);
+    
+    // Primeira linha - Cards principais
+    // Card 1: Total de Abastecimentos
+    $pdf->SetFillColor(235, 245, 250);  // Azul ultra claro
+    $pdf->SetTextColor(52, 73, 94);
+    $pdf->Cell($cardWidth, 5, 'Total de Abastecimentos', 1, 0, 'C', true);
+    
+    // Card 2: Total de Litros
+    $pdf->SetFillColor(240, 247, 245);  // Verde ultra claro
+    $pdf->Cell($cardWidth, 5, 'Total de Litros', 1, 0, 'C', true);
+    
+    // Card 3: Total KM Rodados
+    $pdf->SetFillColor(235, 245, 250);  // Azul ultra claro
+    $pdf->Cell($cardWidth, 5, 'Total KM Rodados', 1, 1, 'C', true);
+    
+    // Valores da primeira linha
+    $pdf->SetFont('helvetica', '', 9);
+    $pdf->SetFillColor(250, 252, 254);
+    $pdf->Cell($cardWidth, 7, number_format($stats['total_abastecimentos'], 0, ',', '.'), 1, 0, 'C', true);
+    $pdf->SetFillColor(250, 254, 252);
+    $pdf->Cell($cardWidth, 7, number_format($stats['total_litros'], 2, ',', '.') . ' L', 1, 0, 'C', true);
+    $pdf->SetFillColor(250, 252, 254);
+    $pdf->Cell($cardWidth, 7, number_format($stats['total_km_rodado'], 0, ',', '.') . ' km', 1, 1, 'C', true);
+    
+    $pdf->Ln(2);
+    
+    // Segunda linha - Médias e totais financeiros
+    $pdf->SetFont('helvetica', 'B', 8);
+    
+    // Card 4: Média KM/L
+    $pdf->SetFillColor(235, 245, 250);
+    $pdf->Cell($cardWidth, 5, 'Média KM/Litro', 1, 0, 'C', true);
+    
+    // Card 5: Valor Total
+    $pdf->SetFillColor(245, 240, 235);  // Tom bege/laranja suave
+    $pdf->Cell($cardWidth, 5, 'Valor Total', 1, 0, 'C', true);
+    
+    // Card 6: Valor Médio
+    $pdf->SetFillColor(245, 240, 235);
+    $pdf->Cell($cardWidth, 5, 'Valor Médio', 1, 1, 'C', true);
+    
+    // Valores da segunda linha
+    $pdf->SetFont('helvetica', '', 9);
+    $pdf->SetFillColor(250, 252, 254);
+    $pdf->Cell($cardWidth, 7, number_format($stats['media_km_litro'], 2, ',', '.') . ' km/L', 1, 0, 'C', true);
+    $pdf->SetFillColor(254, 250, 247);
+    $pdf->SetTextColor(52, 73, 94);
+    $pdf->Cell($cardWidth, 7, 'R$ ' . number_format($stats['total_valor'], 2, ',', '.'), 1, 0, 'C', true);
+    $pdf->Cell($cardWidth, 7, 'R$ ' . number_format($stats['media_valor'], 2, ',', '.'), 1, 1, 'C', true);
+}
+
+function renderizarResumoQuebras($pdf, $extratos, $quebras, $orientacao = 'retrato') {
+    // Agregar dados por combinação de quebras
+    $agregado = [];
+    
+    foreach ($extratos as $item) {
+        $chave = [];
+        foreach ($quebras as $quebra) {
+            switch($quebra) {
+                case 'fornecedor':
+                    $chave[] = $item['nome_fant'];
+                    break;
+                case 'setor':
+                    $chave[] = $item['setor'];
+                    break;
+                case 'produto':
+                    $chave[] = $item['produto'];
+                    break;
+                case 'placa':
+                    $chave[] = $item['placa'];
+                    break;
+            }
+        }
+        
+        $chaveStr = implode('|', $chave);
+        
+        if (!isset($agregado[$chaveStr])) {
+            $agregado[$chaveStr] = [
+                'valores' => $chave,
+                'litros' => 0,
+                'valor' => 0
+            ];
+        }
+        
+        $agregado[$chaveStr]['litros'] += $item['litragem'];
+        $agregado[$chaveStr]['valor'] += $item['vl_total'];
+    }
+    
+    // Nova página para o resumo
+    $pdf->AddPage();
+    
+    // Título
+    $pdf->Ln(5);
+    $pdf->SetFont('helvetica', 'B', 12);
+    $pdf->SetFillColor(220, 230, 238);
+    $pdf->SetTextColor(52, 73, 94);
+    $pdf->SetDrawColor(193, 195, 199);
+    $pdf->SetLineWidth(0.2);
+    $pdf->Cell(0, 8, 'RESUMO POR ' . strtoupper(implode(' E ', $quebras)), 1, 1, 'C', true);
+    $pdf->Ln(3);
+    
+    // Auto-dimensionar larguras baseado no conteúdo
+    $availableWidth = ($orientacao === 'paisagem') ? 277 : 190;
+    
+    // Função auxiliar para calcular largura visual em caracteres
+    $strWidth = function($s) {
+        return mb_strwidth((string)$s, 'UTF-8');
+    };
+    
+    // Calcular larguras máximas para cada coluna de quebra
+    $maxLens = [];
+    $titulos = [
+        'setor' => 'Setor',
+        'placa' => 'Placa',
+        'fornecedor' => 'Fornecedor',
+        'produto' => 'Produto'
+    ];
+    
+    // Inicializar com largura dos títulos
+    foreach ($quebras as $idx => $quebra) {
+        $titulo = $titulos[$quebra] ?? ucfirst($quebra);
+        $maxLens[$idx] = $strWidth($titulo);
+    }
+    
+    // Calcular maior largura (caracteres) para cada coluna de quebra
+    foreach ($agregado as $dados) {
+        foreach ($dados['valores'] as $idx => $valor) {
+            $w = $strWidth($valor);
+            if ($w > $maxLens[$idx]) {
+                $maxLens[$idx] = $w;
+            }
+        }
+    }
+    
+    // Calcular larguras dos valores numéricos (fixas para Litragem e Valor Total)
+    $larguraLitros = 30; // mm
+    $larguraValor = 35; // mm
+    
+    // Distribuir largura disponível proporcionalmente entre as colunas de quebra
+    $totalDisponivel = $availableWidth - $larguraLitros - $larguraValor;
+    $sumLens = array_sum($maxLens);
+    
+    $largurasPorQuebra = [];
+    if ($sumLens > 0) {
+        foreach ($maxLens as $idx => $len) {
+            $largurasPorQuebra[$idx] = ($len / $sumLens) * $totalDisponivel;
+            // Aplicar limites
+            $largurasPorQuebra[$idx] = max(25, min($largurasPorQuebra[$idx], $totalDisponivel * 0.5));
+        }
+        
+        // Reescalar para garantir que total = totalDisponivel
+        $totalCalculado = array_sum($largurasPorQuebra);
+        if ($totalCalculado > 0) {
+            $escala = $totalDisponivel / $totalCalculado;
+            foreach ($largurasPorQuebra as $idx => $largura) {
+                $largurasPorQuebra[$idx] = $largura * $escala;
+            }
+        }
+    } else {
+        // Fallback: distribuir igualmente
+        $larguraPadrao = $totalDisponivel / count($quebras);
+        foreach ($quebras as $idx => $quebra) {
+            $largurasPorQuebra[$idx] = $larguraPadrao;
+        }
+    }
+    
+    // Cabeçalho da tabela
+    $pdf->SetFont('helvetica', 'B', 8);
+    $pdf->SetFillColor(90, 146, 184);
+    $pdf->SetTextColor(255, 255, 255);
+    $pdf->SetDrawColor(74, 124, 158);
+    $pdf->SetLineWidth(0.3);
+    
+    foreach ($quebras as $idx => $quebra) {
+        $titulo = $titulos[$quebra] ?? ucfirst($quebra);
+        $pdf->Cell($largurasPorQuebra[$idx], 6, $titulo, 1, 0, 'C', true);
+    }
+    $pdf->Cell($larguraLitros, 6, 'Litragem (Soma)', 1, 0, 'C', true);
+    $pdf->Cell($larguraValor, 6, 'Vl. Total (Soma)', 1, 1, 'C', true);
+    
+    // Dados
+    $pdf->SetFont('helvetica', '', 8);
+    $pdf->SetTextColor(52, 73, 94);
+    $pdf->SetDrawColor(220, 220, 220);
+    $pdf->SetLineWidth(0.1);
+    
+    $fill = false;
+    $linha = 0;
+    
+    foreach ($agregado as $dados) {
+        $linha++;
+        
+        // Alternar cor de fundo
+        if ($fill) {
+            $pdf->SetFillColor(250, 251, 252);
+        } else {
+            $pdf->SetFillColor(255, 255, 255);
+        }
+        
+        // Valores das quebras
+        foreach ($dados['valores'] as $idx => $valor) {
+            $pdf->Cell($largurasPorQuebra[$idx], 5, $valor, 1, 0, 'L', $fill);
+        }
+        
+        // Valores numéricos
+        $pdf->Cell($larguraLitros, 5, number_format($dados['litros'], 3, ',', '.'), 1, 0, 'R', $fill);
+        $pdf->Cell($larguraValor, 5, number_format($dados['valor'], 2, ',', '.'), 1, 1, 'R', $fill);
+        
+        $fill = !$fill;
+    }
+}
+?>

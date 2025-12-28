@@ -1,0 +1,218 @@
+<?php
+if (empty($_SESSION['token'])) {
+    header('Location: ' . BASE_URL . 'index.php');
+    exit;
+}
+?>
+<header class="header">
+    <div class="header-content">
+        <div class="header-brand">
+            <img src="<?php echo BASE_URL . ($_SESSION['cliente_logo'] ?? COMPANY_LOGO); ?>" 
+                 alt="Logo" 
+                 id="headerClienteLogo"
+                 onerror="this.src='https://via.placeholder.com/60'">
+            <div class="header-title">
+                <h2 id="headerClienteNome"><?php echo htmlspecialchars($_SESSION['cliente_nome'] ?? 'QR Combustível'); ?></h2>
+            </div>
+        </div>
+        
+        <div class="header-user-container" style="display: flex; align-items: center; gap: 20px;">
+            <!-- Seletor de Cliente (apenas para administradores) -->
+            <?php if (isset($_SESSION['grupoId']) && $_SESSION['grupoId'] == 1): ?>
+            <div class="header-cliente-selector">
+                <select id="clienteSelector" class="form-select form-select-sm" style="min-width: 200px;">
+                    <option value="">Carregando clientes...</option>
+                </select>
+            </div>
+            <?php endif; ?>
+            
+            <div class="header-user">
+            <div class="header-user-info">
+                <small>Bem-vindo(a)</small>
+                <strong><?php echo htmlspecialchars($_SESSION['nome'] ?? $_SESSION['login'] ?? 'Usuário'); ?></strong>
+            </div>
+            <div class="header-user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<style>
+.header-user-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-cliente-selector select {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--primary-dark);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.header-cliente-selector select:hover {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header-cliente-selector select:focus {
+    outline: none;
+    border-color: var(--primary-dark);
+    box-shadow: 0 0 0 3px rgba(47, 107, 143, 0.1);
+}
+</style>
+
+<script>
+// Variáveis globais para controle
+let clienteSelectorLoaded = false;
+
+// Carregar clientes disponíveis
+function loadClientesSelector() {
+    if (clienteSelectorLoaded) {
+        return; // Evitar múltiplas chamadas
+    }
+    clienteSelectorLoaded = true;
+    const select = document.getElementById('clienteSelector');
+    if (!select) {
+        console.warn('Seletor de cliente não encontrado no DOM');
+        return;
+    }
+    
+    fetch('../api/user_cliente.php?action=list')
+        .then(r => {
+            if (!r.ok) {
+                throw new Error('Erro HTTP: ' + r.status);
+            }
+            return r.json();
+        })
+        .then(data => {
+            if (data.success && data.clientes && data.clientes.length > 0) {
+                const currentClienteId = <?php echo $_SESSION['cliente_id'] ?? 'null'; ?>;
+                
+                select.innerHTML = data.clientes.map(c => 
+                    `<option value="${c.id}" ${c.id === currentClienteId ? 'selected' : ''}>
+                        ${c.nome_exibicao || c.razao_social}${data.is_admin && c.cnpj ? ' (' + c.cnpj + ')' : ''}
+                    </option>`
+                ).join('');
+                
+                // Se não há cliente selecionado, selecionar o primeiro
+                if (!currentClienteId && data.clientes.length > 0) {
+                    switchCliente(data.clientes[0].id);
+                }
+            } else {
+                console.warn('Nenhum cliente disponível ou erro na resposta');
+                // Se não conseguiu carregar clientes, ocultar seletor
+                const selector = document.querySelector('.header-cliente-selector');
+                if (selector) {
+                    selector.style.display = 'none';
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Erro ao carregar clientes:', err);
+            // Ocultar seletor em caso de erro
+            const selector = document.querySelector('.header-cliente-selector');
+            if (selector) {
+                selector.style.display = 'none';
+            }
+            // Mostrar mensagem amigável
+            select.innerHTML = '<option value="">Sistema sem multicliente</option>';
+        });
+}
+
+// Trocar cliente
+function switchCliente(clienteId) {
+    if (!clienteId) {
+        console.warn('switchCliente: clienteId inválido');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action', 'switch');
+    formData.append('cliente_id', clienteId);
+    
+    fetch('../api/user_cliente.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => {
+        if (!r.ok) {
+            throw new Error('Erro HTTP: ' + r.status);
+        }
+        return r.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Atualizar header
+            if (data.cliente) {
+                const nomeEl = document.getElementById('headerClienteNome');
+                const logoEl = document.getElementById('headerClienteLogo');
+                
+                if (nomeEl && data.cliente.nome) {
+                    nomeEl.textContent = data.cliente.nome;
+                }
+                
+                if (logoEl && data.cliente.logo) {
+                    logoEl.src = '<?php echo BASE_URL; ?>' + data.cliente.logo;
+                }
+            }
+            
+            // Recarregar página para atualizar dados
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
+        } else {
+            console.error('Erro ao trocar cliente:', data.message);
+            alert('Erro: ' + (data.message || 'Erro desconhecido'));
+        }
+    })
+    .catch(err => {
+        console.error('Erro ao trocar cliente:', err);
+        // Não mostrar alert se for erro de rede esperado (API não existe ainda)
+        if (err.message.includes('404') || err.message.includes('500')) {
+            console.info('API de cliente ainda não está disponível');
+        } else {
+            alert('Erro ao trocar cliente. Verifique o console para detalhes.');
+        }
+    });
+}
+
+// Event listener para mudança de cliente (apenas para administradores)
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se elementos existem antes de usar (só existe para administradores)
+    const selector = document.getElementById('clienteSelector');
+    if (selector) {
+        loadClientesSelector();
+        
+        selector.addEventListener('change', function() {
+            const clienteId = this.value;
+            if (clienteId) {
+                switchCliente(clienteId);
+            }
+        });
+    }
+});
+
+function logout() {
+    if (confirm('Deseja realmente sair?')) {
+        // Limpar cache do navegador antes de redirecionar
+        if (typeof clearBrowserCache === 'function') {
+            clearBrowserCache();
+        }
+        
+        // Redirecionar para logout
+        window.location.href = '../api/logout.php';
+    }
+}
+</script>

@@ -1,0 +1,392 @@
+body {
+    min-height: 100vh;
+    margin: 0;
+    padding-top: 56px;
+}
+
+/* Header */
+.custom-header {
+    background-color: #c1c3c7;
+    color: #1b5175;
+}
+
+.custom-header .navbar-brand,
+.custom-header .navbar-brand i,
+.custom-header span,
+.custom-header i {
+    color: #1b5175;
+}
+
+.custom-header .container-fluid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 50px;
+    height: 100%;
+    padding: 0 1rem;
+}
+
+.logo-container {
+    flex: 0 0 auto;
+}
+
+.empresa {
+    flex: 1;
+    text-align: center;
+    color: #1b5175;
+    font-size: 1.5rem;
+    font-weight: bold;
+    gap: 5rem;
+}
+
+.empresa img {
+    flex: 1;
+    text-align: center;
+    color: #1b5175;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.user-info {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    color: #1b5175;
+    gap: 0.25rem;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 60px;
+    background: #343a40;
+    position: fixed;
+    top: 65px;
+    bottom: 0;
+    left: 0;
+    transition: width 0.3s;
+    z-index: 1000;
+    overflow-x: hidden;
+}
+
+.sidebar:hover {
+    width: 250px;
+}
+
+.nav-link {
+    padding: 15px;
+    color: rgba(255,255,255,.8);
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,.1);
+}
+
+.nav-link i {
+    min-width: 30px;
+    font-size: 1.2rem;
+}
+
+.menu-text {
+    margin-left: 10px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.sidebar:hover .menu-text {
+    opacity: 1;
+}
+
+/* Submenu */
+.submenu {
+    list-style: none;
+    padding-left: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: rgba(0,0,0,.2);
+}
+
+.has-submenu:hover .submenu {
+    max-height: 300px;
+}
+
+.submenu li a {
+    padding: 10px 15px 10px 45px;
+    color: rgba(255,255,255,.8);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.submenu-icon {
+    position: absolute;
+    right: 15px;
+    transition: transform 0.3s;
+}
+
+.has-submenu:hover .submenu-icon {
+    transform: rotate(90deg);
+}
+
+/* Main Content */
+.content {
+    margin-left: 60px;
+    margin-bottom: 60px;
+    padding: 20px;
+    transition: margin-left 0.3s;
+}
+
+.card {
+    margin-bottom: 10px;
+}
+
+.card-header {
+    color: #1b5175;
+    text-align: center;
+}
+
+/* Footer */
+.footer {
+    background-color: #1b5175;
+    color: #ffffff;
+    font-size: .8rem;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 24px;
+    line-height: 24px;
+    transition: margin-left 0.3s;
+    z-index: 999;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+    .sidebar:hover + .content {
+        margin-left: 250px;
+    }
+
+    .logo-container img {
+        height: 50px;
+        max-width: 200px;
+    }  
+    .empresa {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .logo-container img {
+        display: none;
+    }  
+    .empresa {
+        font-size: 1rem;
+    }
+    .custom-header .container-fluid {
+        justify-content: space-between;
+        padding: 0 0.5rem;
+    }
+    .login-container {
+        margin: 0 15px;
+    }
+    
+    .login-logo {
+        max-width: 200px;
+    }
+    
+    .form-container .card-body {
+        padding: 1.5rem;
+    }
+}
+
+
+/* Login Page Styles */
+.login-page {
+    background-color: #c1c3c7;
+    min-height: 100vh;
+    /* display: flex; */
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+}
+
+.login-logo {
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 2rem;
+}
+
+.form-label {
+      color: #143d59;
+      padding-left: 10px;
+      margin-bottom: 2px;
+}
+
+.form-container .card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.form-container .card-header {
+    background-color: #1b5175;
+    color: white;
+    border-bottom: 3px solid #f07a28;
+    border-radius: 10px 10px 0 0;
+    padding: 1rem;
+}
+
+.form-container .card-body {
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 0 0 10px 10px;
+}
+
+.input-group {
+    margin-top: 2px; /* ou 0, se quiser colado */
+}
+
+.input-group-text {
+    background-color: #1b5175;
+    color: white;
+    border: none;
+}
+
+.btn-primary {
+    background-color: #1b5175;
+    border-color: #1b5175;
+}
+
+.btn-primary:hover {
+    background-color: #f07a28;
+    border-color: #143d59;
+}
+
+/* List Page Styles */
+
+.list-container {
+    margin-top: .5rem;
+}
+
+.list-header {
+    background-color: #1b5175;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom: 3px solid #f07a28;
+    color: #ffffff;
+    font-weight:normal;
+    height: 40px;
+    line-height: 40px;
+    margin: 0;
+    align-content: center;
+}
+
+.list-items {
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+    background-color: #f2f2f2;
+}
+
+.list-items:last-child {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.list-items:nth-child(even) {
+    background-color: #fcfcfc;
+}
+
+.list-items:hover {
+    color: #1b5175;
+    background: #c1c3c7;
+}
+
+.list-row {
+    height: 34px;
+    line-height: 34px;
+    margin: 0;
+    padding: 0;
+    
+}
+
+.btn-sm {
+    padding: 0 .5rem;
+    height: 24px;
+    line-height: 22px;
+    font-size: 12px;
+}
+
+.btn-sm i {
+    font-size: 12px;
+}
+
+.list-container .col-2,
+.list-container .col-3,
+.list-container .col-5 {
+    padding: 0 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+}
+
+.modal-header {
+    background-color: #1b5175;
+    border-bottom: 3px solid #f07a28;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.modal-title {
+    font-weight: normal;
+    text-align: center;
+    flex: 1;
+}
+
+.modal-body {
+    background-color: #fcfcfc;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.btn-close {
+    color: #fff;
+    position: absolute;
+    right: 1rem;
+}
+
+.pagination {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    background-color: #ffffff;
+    border-radius: 4px;
+    z-index: 998;
+    transition: left 0.3s ease; /* Smooth transition */
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #1b5175;
+    border-color: #1b5175;
+    color: #fcfcfc;
+}
+
+.pagination .page-link {
+    color: #1b5175;
+    padding: 0.375rem 0.75rem;
+}

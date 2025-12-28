@@ -1,0 +1,6 @@
+# Arquivo de configuração com credenciais
+sync_config.php
+
+# Logs de sincronização
+logs/
+*.log
