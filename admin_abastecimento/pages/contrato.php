@@ -48,7 +48,7 @@ $podeVisualizar = $accessControl->verificarPermissao('contrato', 'visualizar');
         <div class="mb-2" style="display: flex; gap: 10px; align-items: center;">
             <div class="input-group" style="max-width:720px;">
                 <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar por código, descrição ou fornecedor...">
-                <button class="btn btn-secondary btn-sm btn-buscar" type="button"><i class="fas fa-search"></i></button>
+                <button class="btn btn-secondary btn-sm" type="button"><i class="fas fa-search"></i></button>
             </div>
             <?php if ($podeCriar): ?>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalContrato" onclick="resetForm()">
@@ -58,7 +58,7 @@ $podeVisualizar = $accessControl->verificarPermissao('contrato', 'visualizar');
         </div>
 
         <div class="table-container">
-            <table class="table table-hover">
+            <table class="table table-enhanced">
                 <thead>
                     <tr>
                         <th>Código</th>
@@ -185,7 +185,7 @@ $podeVisualizar = $accessControl->verificarPermissao('contrato', 'visualizar');
                                 <hr>
                                 <h6><strong>Produtos Vinculados</strong></h6>
                                 <div class="table-responsive">
-                                    <table class="table table-sm table-hover">
+                                    <table class="table table-sm table-enhanced">
                                         <thead>
                                             <tr>
                                                 <th>Produto</th>

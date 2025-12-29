@@ -50,7 +50,7 @@ $podeExcluir = $accessControl->verificarPermissao('veiculos', 'excluir');
         <div class="search-container">
             <div class="input-group search-input-group">
                 <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar por placa, modelo ou marca...">
-                <button class="btn btn-secondary btn-sm btn-buscar" type="button"><i class="fas fa-search"></i></button>
+                <button class="btn btn-secondary btn-sm" type="button"><i class="fas fa-search"></i></button>
             </div>
             <?php if ($podeCriar): ?>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalVeiculo">

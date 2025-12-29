@@ -36,21 +36,25 @@ if ($grupoId != 1) {
 
     <div class="main-content licencas">
         <div class="page-title">
-            <span><i class="fas fa-key"></i> Gerenciamento de Licenças</span>
+            <div>
+                <h1>
+                    <i class="fas fa-key"></i>Gerenciamento de Licenças
+                </h1>
+            </div>
         </div>
 
-        <div class="mb-3" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <div class="licencas-filters">
             <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalGerarLicenca">
                 <i class="fas fa-plus"></i> Gerar Nova Licença
             </button>
             
             <?php if ($_SESSION['grupoId'] == 1): ?>
-            <select class="form-select form-select-sm" id="filtroCliente" style="width: auto; min-width: 200px;">
+            <select class="form-select form-select-sm" id="filtroCliente">
                 <option value="">Todos os Clientes</option>
             </select>
             <?php endif; ?>
             
-            <select class="form-select form-select-sm" id="filtroStatus" style="width: auto;">
+            <select class="form-select form-select-sm" id="filtroStatus">
                 <option value="">Todos os Status</option>
                 <option value="pendente">Pendente</option>
                 <option value="ativa">Ativa</option>
@@ -64,7 +68,7 @@ if ($grupoId != 1) {
         </div>
 
         <div class="table-container">
-            <table class="table table-hover">
+            <table class="table table-enhanced">
                 <thead>
                     <tr>
                         <th>Cliente</th>
@@ -91,7 +95,7 @@ if ($grupoId != 1) {
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-key"></i> Gerar Nova Licença</h5>
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>Gerar Nova Licença</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -124,10 +128,10 @@ if ($grupoId != 1) {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                        <i class="fas fa-times me-2"></i>Cancelar
                     </button>
                     <button type="button" class="btn btn-primary" onclick="gerarLicenca()">
-                        <i class="fas fa-key"></i> Gerar Licença
+                        <i class="fas fa-key me-2"></i>Gerar Licença
                     </button>
                 </div>
             </div>
@@ -139,7 +143,7 @@ if ($grupoId != 1) {
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-calendar-plus"></i> Adiar Data de Expiração</h5>
+                    <h5 class="modal-title"><i class="fas fa-calendar-plus me-2"></i>Adiar Data de Expiração</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -159,10 +163,10 @@ if ($grupoId != 1) {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                        <i class="fas fa-times me-2"></i>Cancelar
                     </button>
                     <button type="button" class="btn btn-primary" onclick="adiarExpiracao()">
-                        <i class="fas fa-calendar-plus"></i> Adiar
+                        <i class="fas fa-calendar-plus me-2"></i>Adiar
                     </button>
                 </div>
             </div>
@@ -174,15 +178,15 @@ if ($grupoId != 1) {
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-info-circle"></i> Detalhes da Licença</h5>
+                    <h5 class="modal-title"><i class="fas fa-info-circle me-2"></i>Detalhes da Licença</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-12 mb-3">
-                            <div class="alert alert-info text-center">
+                            <div class="alert alert-info alert-licenca-info">
                                 <h4>Código da Licença</h4>
-                                <h2 id="codigoLicencaDetalhe" style="font-family: monospace; letter-spacing: 2px;"></h2>
+                                <h2 id="codigoLicencaDetalhe" class="codigo-licenca-display"></h2>
                             </div>
                         </div>
                     </div>

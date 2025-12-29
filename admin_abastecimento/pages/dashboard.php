@@ -105,7 +105,6 @@ if ($clienteId) {
                     <h1>
                         <i class="fas fa-chart-line"></i>Dashboard
                     </h1>
-                    <p>Bem-vindo ao seu painel de controle</p>
                 </div>
             </div>
 

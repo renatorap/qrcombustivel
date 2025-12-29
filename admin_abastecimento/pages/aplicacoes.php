@@ -29,73 +29,63 @@ $pageTitle = 'Aplicações';
 <?php include '../includes/sidebar.php'; ?>
 
 <main class="main-content">
-    <div class="container-fluid">
-        <div class="page-title">
-            <span><i class="fas fa-th-large"></i> <?php echo $pageTitle; ?></span>
-            <div>
-                <button class="btn btn-outline-primary me-2" onclick="location.href='sincronizacao.php'">
-                    <i class="fas fa-sync me-2"></i>Sincronizar
+    <div class="page-title">
+        <div>
+            <h1>
+                <i class="fas fa-th-large"></i>Aplicações
+            </h1>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary btn-sm me-2" onclick="location.href='sincronizacao.php'">
+                <i class="fas fa-sync"></i> Sincronizar
+            </button>
+            <?php if ($podeCriar): ?>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAplicacao">
+                    <i class="fas fa-plus"></i> Nova Aplicação
                 </button>
-                <?php if ($podeCriar): ?>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAplicacao">
-                        <i class="fas fa-plus me-2"></i>Nova Aplicação
-                    </button>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar aplicações...">
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" id="filtroModulo">
-                    <option value="">Todos os módulos</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" id="filtroAtivo">
-                    <option value="">Todos os status</option>
-                    <option value="1" selected>Ativas</option>
-                    <option value="0">Inativas</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Código</th>
-                                        <th>Nome</th>
-                                        <th>Módulo</th>
-                                        <th class="text-center">Ordem</th>
-                                        <th class="text-center">Status</th>
-                                        <th class="text-center">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="aplicacoesTableBody">
-                                    <tr><td colspan="6" class="text-center"><div class="spinner-border"></div></td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <nav><ul class="pagination justify-content-center" id="pagination"></ul></nav>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
+
+    <div class="search-container">
+        <div class="search-input-container">
+            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Pesquisar aplicações...">
+        </div>
+        <select class="form-select form-select-sm" id="filtroModulo" style="max-width: 200px;">
+            <option value="">Todos os módulos</option>
+        </select>
+        <select class="form-select form-select-sm" id="filtroAtivo" style="max-width: 180px;">
+            <option value="">Todos os status</option>
+            <option value="1" selected>Ativas</option>
+            <option value="0">Inativas</option>
+        </select>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-enhanced">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Módulo</th>
+                    <th class="text-center">Ordem</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="aplicacoesTableBody">
+                <tr><td colspan="6" class="text-center"><div class="spinner-border"></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <nav><ul class="pagination justify-content-center" id="pagination"></ul></nav>
 </main>
 
 <div class="modal fade" id="modalAplicacao" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Nova Aplicação</h5>
+                <h5 class="modal-title"><i class="fas fa-th-large me-2"></i>Nova Aplicação</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -135,8 +125,12 @@ $pageTitle = 'Aplicações';
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="salvarAplicacao()">Salvar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="salvarAplicacao()">
+                    <i class="fas fa-save me-2"></i>Salvar
+                </button>
             </div>
         </div>
     </div>

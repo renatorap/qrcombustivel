@@ -50,7 +50,7 @@ $podeExcluir = $accessControl->verificarPermissao('fornecedores', 'excluir');
         <div class="mb-2" style="display: flex; gap: 10px; align-items: center;">
             <div class="input-group" style="max-width:720px;">
                 <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar por razão social, CNPJ ou nome fantasia...">
-                <button class="btn btn-secondary btn-sm btn-buscar" type="button"><i class="fas fa-search"></i></button>
+                <button class="btn btn-secondary btn-sm" type="button"><i class="fas fa-search"></i></button>
             </div>
             <?php if ($podeCriar): ?>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalFornecedor" onclick="resetForm()">
@@ -60,7 +60,7 @@ $podeExcluir = $accessControl->verificarPermissao('fornecedores', 'excluir');
         </div>
 
         <div class="table-container">
-            <table class="table table-hover">
+            <table class="table table-enhanced">
                 <thead>
                     <tr>
                         <th>Razão Social</th>
@@ -251,7 +251,7 @@ $podeExcluir = $accessControl->verificarPermissao('fornecedores', 'excluir');
                                         </button>
                                     </div>
                                     <div class="table-responsive">
-                                        <table class="table table-sm table-hover">
+                                        <table class="table table-sm table-enhanced">
                                             <thead>
                                                 <tr>
                                                     <th>Usuário</th>

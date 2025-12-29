@@ -40,7 +40,7 @@ $statusLicenca = LicenseChecker::verificarEBloquear($clienteId, $grupoId);
         <div class="mb-2" style="display: flex; gap: 10px; align-items: center;">
             <div class="input-group" style="max-width:720px;">
                 <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar setor...">
-                <button class="btn btn-secondary btn-sm btn-buscar" type="button"><i class="fas fa-search"></i></button>
+                <button class="btn btn-secondary btn-sm" type="button"><i class="fas fa-search"></i></button>
             </div>
             <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalSetor">
                 <i class="fas fa-plus"></i> Novo Setor
@@ -48,7 +48,7 @@ $statusLicenca = LicenseChecker::verificarEBloquear($clienteId, $grupoId);
         </div>
 
         <div class="table-container">
-            <table class="table table-hover">
+            <table class="table table-enhanced">
                 <thead>
                     <tr>
                         <th>Código</th>

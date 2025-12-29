@@ -65,7 +65,7 @@ $podeVisualizar = $accessControl->verificarPermissao('aditamento', 'visualizar')
         </div>
 
         <div class="table-container">
-            <table class="table table-hover">
+            <table class="table table-enhanced">
                 <thead>
                     <tr>
                         <th>Código</th>
