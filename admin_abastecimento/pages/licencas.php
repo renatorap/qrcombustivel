@@ -68,7 +68,7 @@ if ($grupoId != 1) {
         </div>
 
         <div class="table-container">
-            <table class="table table-enhanced">
+            <table class="table-modern">
                 <thead>
                     <tr>
                         <th>Cliente</th>

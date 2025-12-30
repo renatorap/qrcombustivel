@@ -14,7 +14,7 @@
 function renderStatCard($title, $value, $icon = 'fa-chart-bar', $footer = '', $color = 'primary')
 {
     ?>
-    <div class="card" style="background: #ffffff; border-left: 6px solid #f59b4c;">
+    <div class="card" style="background: #ffffff; border-left: 6px solid #f07a28;">
         <div class="card-content">
             <div class="card-icon" style="background: #2f6b8f; color: #ffffff;">
                 <i class="fas <?php echo $icon; ?>"></i>

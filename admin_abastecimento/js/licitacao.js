@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    document.querySelector('.btn-buscar').addEventListener('click', function() {
+    document.querySelector('.btn-secondary').addEventListener('click', function() {
         currentSearch = document.getElementById('searchInput').value;
         loadData(1);
     });
@@ -63,13 +63,13 @@ function renderTable(licitacoes) {
         
         let actionsHtml = '';
         if (podeEditarLicitacao) {
-            actionsHtml += `<button class="btn btn-sm btn-primary me-1" onclick="editar(${licitacao.id_licitacao})" title="Editar" style="padding: 0.25rem 0.5rem; width: 32px; height: 32px;">
-                <i class="fas fa-edit" style="font-size: 0.875rem;"></i>
+            actionsHtml += `<button class="btn btn-sm btn-outline-warning me-1" onclick="editar(${licitacao.id_licitacao})" title="Editar">
+                <i class="fas fa-edit"></i>
             </button>`;
         }
         if (podeExcluirLicitacao) {
-            actionsHtml += `<button class="btn btn-sm btn-danger" onclick="excluir(${licitacao.id_licitacao})" title="Excluir" style="padding: 0.25rem 0.5rem; width: 32px; height: 32px;">
-                <i class="fas fa-trash" style="font-size: 0.875rem;"></i>
+            actionsHtml += `<button class="btn btn-sm btn-outline-danger" onclick="excluir(${licitacao.id_licitacao})" title="Excluir">
+                <i class="fas fa-trash"></i>
             </button>`;
         }
         

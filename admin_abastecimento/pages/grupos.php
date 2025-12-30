@@ -59,7 +59,7 @@ $pageTitle = 'Grupos de Usuários';
 
         <!-- Tabela de Grupos -->
         <div class="table-container">
-            <table class="table table-enhanced">
+            <table class="table-modern">
                 <thead>
                     <tr>
                         <th>Nome</th>

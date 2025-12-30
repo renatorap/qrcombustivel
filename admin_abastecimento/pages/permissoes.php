@@ -86,7 +86,7 @@ include '../includes/sidebar.php';
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-enhanced mb-0" id="permissoesTable">
+                            <table class="table-modern mb-0" id="permissoesTable">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 20%">Aplicação</th>

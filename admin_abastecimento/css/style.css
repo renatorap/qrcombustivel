@@ -466,52 +466,35 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 .card { 
     background: var(--bg-surface); 
     border-radius: var(--border-radius-lg); 
-    padding: 1rem; 
+    padding: 0.75rem; 
     box-shadow: var(--shadow-xs); 
-    transition: var(--transition-base); 
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     border: 1px solid var(--border-color);
     position: relative;
-    overflow: hidden;
-}
-
-.card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--color-secondary);
-    transform: scaleY(0);
-    transform-origin: bottom;
-    transition: var(--transition-base);
 }
 
 .card:hover { 
-    box-shadow: var(--shadow-md); 
-    transform: translateY(-2px);
+    background: var(--color-gray-100);
+    box-shadow: var(--shadow-lg); 
+    transform: translateY(-4px) scale(1.02);
     border-color: var(--color-primary-alpha-20);
-}
-
-.card:hover::before {
-    transform: scaleY(1);
 }
 .card-content { 
     display: flex; 
     align-items: center; 
-    gap: 0.75rem; 
+    gap: 0.5rem; 
 }
 
 .card-icon { 
-    width: 48px; 
-    height: 48px; 
+    width: 40px; 
+    height: 40px; 
     background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); 
     border-radius: var(--border-radius); 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     color: var(--white); 
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     flex-shrink: 0;
     box-shadow: var(--shadow-sm);
 }
@@ -528,7 +511,7 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
     flex: 1; 
     display: flex; 
     flex-direction: column; 
-    gap: 0.25rem;
+    gap: 0.15rem;
     min-width: 0;
 }
 
@@ -542,7 +525,7 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 }
 
 .card-value { 
-    font-size: 1.5rem; 
+    font-size: 1.35rem; 
     font-weight: var(--font-bold); 
     color: var(--color-primary); 
     margin: 0;
@@ -550,8 +533,9 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 }
 
 .card-footer {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    margin-bottom: -0.05rem;
     border-top: 1px solid var(--border-color-light);
     font-size: var(--font-xs);
     color: var(--color-gray-600);
@@ -630,6 +614,28 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 .table tbody tr:hover { 
     background-color: var(--bg-hover);
     cursor: pointer;
+}
+
+/* Ícones em tabelas - tamanho fixo 12px */
+.table i.fas,
+.table i.far,
+.table i.fab,
+.table-modern i.fas,
+.table-modern i.far,
+.table-modern i.fab,
+.table button i,
+.table-modern button i,
+.table a i,
+.table-modern a i {
+    font-size: 12px !important;
+}
+
+/* Botões dentro de tabelas - padding reduzido para ícones 12px */
+.table .btn-sm,
+.table-modern .btn-sm {
+    padding: 0.25rem 0.5rem !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
 }
 
 .table tbody tr:last-child td {
@@ -738,9 +744,9 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 
 .btn-sm {
     padding: 0.375rem 0.75rem;
-    font-size: var(--font-xs);
-    min-width: 32px;
-    min-height: 32px;
+    font-size: var(--font-sm);
+    min-width: 48px;
+    min-height: 48px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -991,7 +997,7 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 .table-modern th, .table-modern td { 
     text-align: center; 
     vertical-align: middle; 
-    padding: 0.75rem; 
+    padding: 0.65rem; 
     font-size: var(--font-sm); 
     border-bottom: 1px solid var(--border-color-light); 
 }
@@ -1002,10 +1008,10 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 }
 
 .table-modern thead th { 
-    font-weight: var(--font-semibold); 
+    font-weight: var(--font-primary); 
     text-transform: uppercase; 
     letter-spacing: 0.05em; 
-    font-size: var(--font-xs);
+    font-size: var(--font-sm);
     text-align: center;
     vertical-align: middle;
     border-bottom: 3px solid var(--color-secondary);
@@ -1083,7 +1089,7 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 
 .search-input-group .form-control-sm {
     padding: 0.15rem 0.5rem;
-    min-height: 32px;
+    min-height: 48px;
     font-size: var(--font-sm);
 }
 
@@ -1363,6 +1369,10 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 }
 
 /* Dashboard específico */
+.dashboard-section {
+    margin-bottom: 2rem;
+}
+
 .section-title { 
     border-left: 4px solid var(--color-secondary); 
     padding-left: 0.75rem; 
@@ -1372,11 +1382,15 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
     margin-bottom: 1.5rem; 
 }
 
+.section-title i {
+    margin-right: 0.35rem;
+}
+
 .card-metric { 
     background: var(--bg-surface); 
     border: 1px solid var(--border-color); 
     border-radius: var(--border-radius-lg); 
-    padding: 1.5rem; 
+    padding: 0.5rem; 
     box-shadow: var(--shadow-xs);
     transition: var(--transition-base);
 }
@@ -1414,58 +1428,6 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
     margin: 0.5rem 0 0.25rem; 
 }
 
-.table-enhanced thead { 
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)) !important; 
-    color: var(--white) !important; 
-    text-transform: uppercase; 
-    letter-spacing: 0.05em; 
-}
-
-.table-enhanced thead th {
-    padding: 1rem;
-    font-weight: var(--font-semibold);
-    font-size: var(--font-sm);
-    text-align: center;
-    vertical-align: middle;
-    border-bottom: 3px solid var(--color-secondary);
-    color: var(--white) !important;
-    background: transparent !important;
-    position: relative;
-}
-
-.table-enhanced thead th:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 20%;
-    height: 60%;
-    width: 1px;
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.table-enhanced tbody td {
-    position: relative;
-    padding: 0.25rem 0.5rem;
-}
-
-.table-enhanced tbody td:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 25%;
-    height: 50%;
-    width: 1px;
-    background: var(--border-color);
-}
-
-.table-enhanced tbody tr:nth-child(even) { 
-    background-color: var(--color-gray-50); 
-}
-
-.table-enhanced tbody tr:hover { 
-    background-color: var(--bg-hover); 
-}
-
 /* Responsivo */
 @media (max-width: 1024px) {
     .sidebar {
@@ -1488,9 +1450,7 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
         margin-left: 72px;
     }
     
-    .dashboard-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+
 }
 
 @media (max-width: 768px) {
@@ -1535,9 +1495,7 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
         padding: 1rem; 
     }
     
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
+
     
     .search-input-container, 
     .search-input-group { 
