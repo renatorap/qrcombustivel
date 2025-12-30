@@ -572,7 +572,7 @@ $accessControl = new AccessControl($_SESSION['userId']);
         <div class="results-section" id="resultsSection" style="display: none;">
             <h5 class="mb-3"><i class="fas fa-list"></i> Extrato de Abastecimento</h5>
             <div class="table-responsive">
-                <table class="table table-enhanced table-sm" id="resultsTable">
+                <table class="table-modern table-sm" id="resultsTable">
                     <thead>
                         <tr>
                             <th>Data</th>

@@ -317,7 +317,7 @@ $fornecedorId = $accessControl->getFornecedorId();
         <div class="results-section" id="resultsSection" style="display: none;">
             <h5 class="mb-3"><i class="fas fa-list"></i> Resultados da Pesquisa</h5>
             <div class="table-responsive">
-                <table class="table table-enhanced" id="resultsTable">
+                <table class="table-modern" id="resultsTable">
                     <thead>
                         <tr>
                             <th>Data/Hora</th>

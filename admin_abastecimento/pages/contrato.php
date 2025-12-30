@@ -58,7 +58,7 @@ $podeVisualizar = $accessControl->verificarPermissao('contrato', 'visualizar');
         </div>
 
         <div class="table-container">
-            <table class="table table-enhanced">
+            <table class="table-modern">
                 <thead>
                     <tr>
                         <th>Código</th>
@@ -185,7 +185,7 @@ $podeVisualizar = $accessControl->verificarPermissao('contrato', 'visualizar');
                                 <hr>
                                 <h6><strong>Produtos Vinculados</strong></h6>
                                 <div class="table-responsive">
-                                    <table class="table table-sm table-enhanced">
+                                    <table class="table table-sm table-modern">
                                         <thead>
                                             <tr>
                                                 <th>Produto</th>

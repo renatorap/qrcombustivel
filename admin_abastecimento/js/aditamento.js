@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    document.querySelector('.btn-buscar').addEventListener('click', function() {
+    document.querySelector('.btn-secondary').addEventListener('click', function() {
         currentSearch = document.getElementById('searchInput').value;
         loadData(1);
     });

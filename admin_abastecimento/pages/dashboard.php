@@ -133,12 +133,12 @@ if ($clienteId) {
 
             <!-- Abastecimentos Recentes -->
             <div class="dashboard-section">
-                <h3 class="section-title">
-                    <i class="fas fa-history"></i>Abastecimentos Recentes
-                </h3>
+                <h4 class="section-title">
+                    <i class="fas fa-history"></i> Abastecimentos Recentes
+                </h4>
                 
                 <div class="table-container">
-                    <table class="table table-enhanced" style="font-size: 14px; margin-bottom: 0;">
+                    <table class="table-modern">
                         <thead>
                             <tr>
                                 <th>Data</th>
@@ -207,12 +207,12 @@ if ($clienteId) {
             <?php if (!$fornecedorId): ?>
             <!-- Veículos Ativos (oculto para usuários do grupo 4) -->
             <div class="dashboard-section">
-                <h3 class="section-title">
-                    <i class="fas fa-car-side"></i>Veículos Ativos
-                </h3>
+                <h4 class="section-title">
+                    <i class="fas fa-car-side"></i> Veículos Ativos
+                </h4>
                 
                 <div class="table-container">
-                    <table class="table table-enhanced" style="font-size: 14px; margin-bottom: 0;">
+                    <table class="table-modern">
                         <thead>
                             <tr>
                                 <th>Placa</th>

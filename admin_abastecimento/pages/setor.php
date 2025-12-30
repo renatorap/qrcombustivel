@@ -48,7 +48,7 @@ $statusLicenca = LicenseChecker::verificarEBloquear($clienteId, $grupoId);
         </div>
 
         <div class="table-container">
-            <table class="table table-enhanced">
+            <table class="table-modern">
                 <thead>
                     <tr>
                         <th>Código</th>

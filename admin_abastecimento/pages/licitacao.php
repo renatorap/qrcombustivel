@@ -47,10 +47,10 @@ $podeExcluir = $accessControl->verificarPermissao('licitacao', 'excluir');
             <span><i class="fas fa-gavel"></i> Gestão de Licitações</span>
         </div>
 
-        <div class="mb-2" style="display: flex; gap: 10px; align-items: center;">
-            <div class="input-group" style="max-width:720px;">
+        <div class="search-container">
+            <div class="input-group search-input-group">
                 <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar por código ou objeto...">
-                <button class="btn btn-secondary btn-sm btn-buscar" type="button"><i class="fas fa-search"></i></button>
+                <button class="btn btn-secondary btn-sm" type="button"><i class="fas fa-search"></i></button>
             </div>
             <?php if ($podeCriar): ?>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalLicitacao" onclick="resetForm()">
@@ -60,7 +60,7 @@ $podeExcluir = $accessControl->verificarPermissao('licitacao', 'excluir');
         </div>
 
         <div class="table-container">
-            <table class="table table-enhanced">
+            <table class="table-modern">
                 <thead>
                     <tr>
                         <th>Código</th>
@@ -125,7 +125,7 @@ $podeExcluir = $accessControl->verificarPermissao('licitacao', 'excluir');
                                 <i class="fas fa-times"></i> Cancelar
                             </button>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Salvar
+                                <i class="fas fa-save"></i> Salvar Licitação
                             </button>
                         </div>
                     </form>

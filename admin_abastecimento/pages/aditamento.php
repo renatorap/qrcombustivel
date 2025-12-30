@@ -45,10 +45,10 @@ $podeVisualizar = $accessControl->verificarPermissao('aditamento', 'visualizar')
             <span><i class="fas fa-file-signature"></i> Gestão de Aditamentos de Preço</span>
         </div>
 
-        <div class="mb-2" style="display: flex; gap: 10px; align-items: center;">
-            <div class="input-group" style="max-width:720px;">
+        <div class="search-container">
+            <div class="input-group search-input-group">
                 <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar por código, descrição ou contrato...">
-                <button class="btn btn-secondary btn-sm btn-buscar" type="button"><i class="fas fa-search"></i></button>
+                <button class="btn btn-secondary btn-sm" type="button"><i class="fas fa-search"></i></button>
             </div>
             <select id="statusFilter" class="form-select form-select-sm" style="max-width: 180px;">
                 <option value="">Todos os Status</option>
@@ -65,7 +65,7 @@ $podeVisualizar = $accessControl->verificarPermissao('aditamento', 'visualizar')
         </div>
 
         <div class="table-container">
-            <table class="table table-enhanced">
+            <table class="table-modern">
                 <thead>
                     <tr>
                         <th>Código</th>
