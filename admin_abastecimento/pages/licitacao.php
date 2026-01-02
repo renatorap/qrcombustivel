@@ -120,7 +120,7 @@ $podeExcluir = $accessControl->verificarPermissao('licitacao', 'excluir');
                             </div>
                         </div>
 
-                        <div class="mt-3 text-end">
+                        <div class="mt-3 d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                 <i class="fas fa-times"></i> Cancelar
                             </button>

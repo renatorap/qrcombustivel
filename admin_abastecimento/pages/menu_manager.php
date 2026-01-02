@@ -178,7 +178,7 @@ $pageTitle = "Gerenciamento de Menu";
 
     <!-- Modal Adicionar/Editar -->
     <div class="modal fade" id="menuItemModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header py-2">
                     <h6 class="modal-title mb-0" id="modalTitle">Adicionar Item</h6>

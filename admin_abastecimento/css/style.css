@@ -883,9 +883,9 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
 
 .modal.show { 
     display: flex; 
-    align-items: center; 
+    align-items: flex-start; 
     justify-content: center; 
-    padding: 1rem;
+    padding: 30px 1rem 1rem 1rem;
     opacity: 1;
     animation: fadeIn var(--transition-base);
 }
@@ -906,7 +906,8 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
     width: 100%; 
     display: flex; 
     flex-direction: column; 
-    max-height: calc(100vh - 2rem);
+    height: auto;
+    max-height: calc(100vh - 80px);
     transform: scale(0.95);
     animation: scaleIn var(--transition-base);
 }
@@ -975,7 +976,7 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
     padding: 1.5rem; 
     overflow-y: auto; 
     flex: 1 1 auto;
-    max-height: calc(100vh - 200px);
+    height: auto;
 }
 
 .modal-footer { 
@@ -985,6 +986,41 @@ h6 { font-size: var(--font-sm); font-weight: var(--font-semibold); text-transfor
     justify-content: flex-end;
     background: var(--color-gray-50);
     border-top: 1px solid var(--border-color);
+}
+
+/* Modal com largura aumentada para melhor distribuição das abas */
+.modal-dialog-wide {
+    max-width: 1200px;
+    width: 95%;
+}
+
+@media (max-width: 1200px) {
+    .modal-dialog-wide {
+        max-width: 95%;
+        width: 95%;
+    }
+}
+
+@media (max-width: 576px) {
+    .modal.show {
+        padding: 10px 0.25rem 0.25rem 0.25rem;
+    }
+    
+    .modal-content {
+        max-height: calc(100vh - 20px);
+    }
+    
+    .modal-header {
+        padding: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        padding: 0.75rem 1rem;
+    }
 }
 
 .table-modern { 

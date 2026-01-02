@@ -251,7 +251,7 @@ $podeExcluir = $accessControl->verificarPermissao('fornecedores', 'excluir');
                                         </button>
                                     </div>
                                     <div class="table-responsive">
-                                        <table class="table table-sm table-modern">
+                                        <table class="table-modern">
                                             <thead>
                                                 <tr>
                                                     <th>Usuário</th>
@@ -272,7 +272,7 @@ $podeExcluir = $accessControl->verificarPermissao('fornecedores', 'excluir');
                             </div>
                         </div>
 
-                        <div class="mt-3 text-end">
+                        <div class="mt-3 d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                 <i class="fas fa-times"></i> Cancelar
                             </button>
