@@ -146,21 +146,21 @@ $hora = date('H:i');
         }
         .header-compact {
             background-color: #fff;
-            padding: 8px;
-            margin-bottom: 10px;
+            padding: 6px;
+            margin-bottom: 6px;
             border-radius: 5px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .header-compact img {
-            width: 45px !important;
-            height: 45px !important;
-            margin: 0 8px 0 0 !important;
+            width: 35px !important;
+            height: 35px !important;
+            margin: 0 6px 0 0 !important;
         }
         .header-compact ul {
             margin: 0;
             padding: 0;
-            font-size: 0.85rem;
-            line-height: 1.4;
+            font-size: 0.8rem;
+            line-height: 1.3;
         }
         .header-compact li {
             list-style-type: none;
@@ -170,36 +170,46 @@ $hora = date('H:i');
             margin: 10px 0;
         }
         .qr-section {
-            margin-bottom: 10px;
-            padding: 12px;
+            margin-bottom: 6px;
+            padding: 8px 12px;
         }
-        .qr-section h5 {
-            font-size: 1rem;
-            margin-bottom: 10px;
+        .qr-section h4 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
         }
         .form-section {
-            padding: 12px 15px;
-            margin-bottom: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
         }
         .form-floating {
-            margin-bottom: 8px !important;
+            margin-bottom: 4px !important;
         }
         .form-floating > label {
-            font-size: 0.9rem;
-            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            padding: 0.5rem 0.5rem 0.3rem 0.5rem;
         }
         .form-control, .form-select {
-            font-size: 0.95rem;
-            padding: 0.5rem 0.75rem;
-            height: calc(2.5rem + 2px);
+            font-size: 0.85rem;
+            padding: 0.3rem 0.5rem;
+            height: calc(1.8rem + 2px);
         }
         .btn-lg {
-            padding: 10px;
-            font-size: 1rem;
+            padding: 8px;
+            font-size: 0.9rem;
         }
         .btn-secondary {
-            padding: 8px 20px;
-            font-size: 0.9rem;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+        }
+        .btn-qr-large {
+            font-size: 1.1rem;
+            padding: 8px 12px;
+            min-width: 185px;
+            max-width: 215px;
+        }
+        .btn-qr-large i {
+            font-size: 1.3rem;
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -207,24 +217,29 @@ $hora = date('H:i');
 
 <div class="main-container">
     <div class="header-compact">
-        <div class="d-flex align-items-center">
-            <?php 
-            // Verificar se o logo é do novo sistema (caminho completo) ou antigo (apenas nome)
-            $logo_path = $_SESSION['logo'];
-            if (strpos($logo_path, '/') !== false || strpos($logo_path, 'storage') !== false) {
-                // Novo sistema - caminho completo relativo ao admin_abastecimento
-                $logo_src = "../admin_abastecimento/" . $logo_path;
-            } else {
-                // Sistema antigo - concatenar com img/id_empr/
-                $logo_src = "img/" . $_SESSION['id_empr'] . "/" . $logo_path;
-            }
-            ?>
-            <img src="<?php echo $logo_src; ?>" class="rounded" onerror="this.style.display='none'">
-            <ul class="flex-grow-1">
-                <li><strong>Município:</strong> <?php echo $_SESSION['nome_empr']; ?></li>
-                <li><strong>Fornecedor:</strong> <?php echo $_SESSION['nome_forn']; ?></li>
-                <li><strong>Usuário:</strong> <?php echo $_SESSION['nome_user']; ?></li>
-            </ul>
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <?php 
+                // Verificar se o logo é do novo sistema (caminho completo) ou antigo (apenas nome)
+                $logo_path = $_SESSION['logo'];
+                if (strpos($logo_path, '/') !== false || strpos($logo_path, 'storage') !== false) {
+                    // Novo sistema - caminho completo relativo ao admin_abastecimento
+                    $logo_src = "../admin_abastecimento/" . $logo_path;
+                } else {
+                    // Sistema antigo - concatenar com img/id_empr/
+                    $logo_src = "img/" . $_SESSION['id_empr'] . "/" . $logo_path;
+                }
+                ?>
+                <img src="<?php echo $logo_src; ?>" class="rounded" onerror="this.style.display='none'">
+                <ul class="flex-grow-1">
+                    <li><strong>Município:</strong> <?php echo $_SESSION['nome_empr']; ?></li>
+                    <li><strong>Fornecedor:</strong> <?php echo $_SESSION['nome_forn']; ?></li>
+                    <li><strong>Usuário:</strong> <?php echo $_SESSION['nome_user']; ?></li>
+                </ul>
+            </div>
+            <a href='logout.php' class="btn btn-secondary btn-sm ms-2">
+                <i class="bi bi-box-arrow-right"></i> Sair
+            </a>
         </div>
     </div>
 
@@ -242,15 +257,15 @@ $hora = date('H:i');
 
     <!-- QR Code Reader Section -->
     <div class="qr-section border rounded bg-light">
-        <h4 class="text-center">Abastecimento</h4>
+        <h3 class="text-center">Abastecimento</h3>
         
         <!-- Botões de Leitura QR Code -->
-        <div class="d-grid gap-1">
-            <button type="button" class="btn btn-primary btn-qr" onclick="iniciarLeituraCondutor()">
-                <i class="bi bi-qr-code-scan"></i> Ler QR Code do Crachá
+        <div class="d-flex gap-2 justify-content-center">
+            <button type="button" class="btn btn-primary btn-qr-large"  onclick="iniciarLeituraCondutor()">
+                <i class="bi bi-qr-code-scan"></i> Crachá
             </button>
-            <button type="button" class="btn btn-success btn-qr" onclick="iniciarLeituraVeiculo()">
-                <i class="bi bi-qr-code-scan"></i> Ler QR Code do Veículo
+            <button type="button" class="btn btn-success btn-qr-large" onclick="iniciarLeituraVeiculo()">
+                <i class="bi bi-qr-code-scan"></i> Veículo
             </button>
         </div>
         
@@ -268,72 +283,80 @@ $hora = date('H:i');
         <input type="hidden" name="id_veiculo" id="id_veiculo" value="<?php echo isset($form_data['id_veiculo']) ? htmlspecialchars($form_data['id_veiculo']) : ''; ?>">
         
         <!-- CONDUTOR -->
-        <div class="form-floating mb-2">
+        <div class="form-floating mb-1">
             <input type="text" class="form-control form-control-sm" name="nome_condutor" id="nome_condutor" value="<?php echo isset($form_data['nome_condutor']) ? htmlspecialchars($form_data['nome_condutor']) : ''; ?>" readonly required/>
             <label for="nome_condutor"><i class="bi bi-person"></i> Condutor</label>
         </div>
         
         <!-- VEÍCULO -->
-        <div class="form-floating mb-2">
+        <div class="form-floating mb-1">
             <input type="text" class="form-control form-control-sm" name="placa_veiculo" id="placa_veiculo" value="<?php echo isset($form_data['placa_veiculo']) ? htmlspecialchars($form_data['placa_veiculo']) : ''; ?>" readonly required/>
             <label for="placa_veiculo"><i class="bi bi-car-front"></i> Placa do Veículo</label>
         </div>
         
         <!-- PRODUTO/COMBUSTÍVEL -->
-        <div class="form-floating mb-2">
+        <div class="form-floating mb-1">
             <select class="form-select" name="produto" id="produto" required onchange="buscarPrecoUnitario();">
                 <option value="">Selecione o Combustível</option>
             </select>
             <label class="form-label" for="produto"><i class="bi bi-fuel-pump"></i> Combustível</label>
         </div>
         
-        <!-- DATA ATUAL -->
-        <div class="form-floating mb-2">
-            <input type="date" class="form-control form-control-sm" name="data" id="data" min="2025-01-01" max="<?php echo $data; ?>" value="<?php echo isset($form_data['data']) ? htmlspecialchars($form_data['data']) : $data; ?>" required/>
-            <label for="data"><i class="bi bi-calendar"></i> Data</label>
+        <!-- DATA E HORA lado a lado -->
+        <div class="row g-1 mb-1">
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="date" class="form-control form-control-sm" name="data" id="data" min="2025-01-01" max="<?php echo $data; ?>" value="<?php echo isset($form_data['data']) ? htmlspecialchars($form_data['data']) : $data; ?>" required/>
+                    <label for="data"><i class="bi bi-calendar"></i> Data</label>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="time" class="form-control form-control-sm" name="hora" id="hora" value="<?php echo isset($form_data['hora']) ? htmlspecialchars($form_data['hora']) : $hora; ?>" required/>
+                    <label for="hora"><i class="bi bi-clock"></i> Hora</label>
+                </div>
+            </div>
         </div>
         
-        <!-- HORA ATUAL -->
-        <div class="form-floating mb-2">
-            <input type="time" class="form-control form-control-sm" name="hora" id="hora" value="<?php echo isset($form_data['hora']) ? htmlspecialchars($form_data['hora']) : $hora; ?>" required/>
-            <label for="hora"><i class="bi bi-clock"></i> Hora</label>
+        <!-- KM ATUAL E LITRAGEM lado a lado -->
+        <div class="row g-1 mb-1">
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="number" class="form-control form-control-sm" name="km_atual" id="km_atual" step="1" min="0" value="<?php echo isset($form_data['km_atual']) ? htmlspecialchars($form_data['km_atual']) : ''; ?>" required />
+                    <label for="km_atual"><i class="bi bi-speedometer"></i> Km Atual</label>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="number" class="form-control form-control-sm" name="litragem" id="litragem" step="0.001" min="0.001" inputmode="decimal" value="<?php echo isset($form_data['litragem']) ? htmlspecialchars($form_data['litragem']) : ''; ?>" required/>
+                    <label for="litragem"><i class="bi bi-droplet"></i> Litragem</label>
+                </div>
+            </div>
         </div>
         
-        <!-- KM ATUAL -->
-        <div class="form-floating mb-2">
-            <input type="number" class="form-control form-control-sm" name="km_atual" id="km_atual" step="1" min="0" value="<?php echo isset($form_data['km_atual']) ? htmlspecialchars($form_data['km_atual']) : ''; ?>" required />
-            <label for="km_atual"><i class="bi bi-speedometer"></i> Km Atual</label>
-        </div>
-        
-        <!-- LITRAGEM -->
-        <div class="form-floating mb-2">
-            <input type="number" class="form-control form-control-sm" name="litragem" id="litragem" step="0.001" min="0.001" inputmode="decimal" value="<?php echo isset($form_data['litragem']) ? htmlspecialchars($form_data['litragem']) : ''; ?>" required onkeyup="calcularValorTotal()" onchange="calcularValorTotal()"/>
-            <label for="litragem"><i class="bi bi-droplet"></i> Litragem</label>
-        </div>
-        
-        <!-- VALOR UNITÁRIO -->
-        <div class="form-floating mb-2">
-            <input type="number" class="form-control form-control-sm" name="valor_unitario" id="valor_unitario" step="0.001" readonly required/>
-            <label for="valor_unitario"><i class="bi bi-currency-dollar"></i> Valor Unitário</label>
-        </div>
-        
-        <!-- VALOR TOTAL -->
-        <div class="form-floating mb-2">
-            <input type="text" class="form-control form-control-sm" name="valor_total" id="valor_total" readonly required/>
-            <label for="valor_total"><i class="bi bi-cash-stack"></i> Valor Total</label>
+        <!-- VALOR UNITÁRIO E TOTAL lado a lado -->
+        <div class="row g-1 mb-1">
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="number" class="form-control form-control-sm" name="valor_unitario" id="valor_unitario" step="0.001" readonly required/>
+                    <label for="valor_unitario"><i class="bi bi-currency-dollar"></i> Vl. Unit.</label>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="text" class="form-control form-control-sm" name="valor_total" id="valor_total" readonly required/>
+                    <label for="valor_total"><i class="bi bi-cash-stack"></i> Vl. Total</label>
+                </div>
+            </div>
         </div>
         
         <!-- SUBMIT -->
-        <div class="d-grid gap-2 mt-3">
-            <button class="btn btn-primary btn-lg" type="submit" name="SendPump">
+        <div class="d-grid gap-1 mt-2">
+            <button class="btn btn-primary" type="submit" name="SendPump" style="padding: 8px; font-size: 0.9rem;">
                 <i class="bi bi-check-circle"></i> Registrar Abastecimento
             </button>
         </div>
     </form>
-    
-    <div class="text-center mt-2 mb-3">
-        <a href='logout.php' class="btn btn-secondary"><i class="bi bi-box-arrow-right"></i> Sair</a>
-    </div>
 </div>
 
 <script src="js/html5-qrcode.min.js"></script>
@@ -374,10 +397,43 @@ function iniciarCamera() {
         onScanSuccess,
         onScanFailure
     ).catch((err) => {
-        console.error("Erro ao iniciar câmera:", err);
+        // erro ao iniciar câmera (informação suprimida no console)
         alert("Erro ao acessar a câmera: " + err);
     });
 }
+
+// Garantir existência de função global calcularValorTotal para callbacks externos
+// Implementação segura: tenta calcular com elementos já presentes, não lança erro se estiver ausente
+window.calcularValorTotal = function() {
+    try {
+        var litragemEl = document.getElementById('litragem');
+        var valorUnitEl = document.getElementById('valor_unitario');
+        var valorTotalEl = document.getElementById('valor_total');
+
+        if (!valorTotalEl) return;
+
+        var litragem = 0;
+        if (litragemEl && litragemEl.value !== undefined && litragemEl.value !== '') {
+            var l = String(litragemEl.value).replace(',', '.').replace(/[^0-9.\-]/g, '');
+            litragem = parseFloat(l);
+            if (isNaN(litragem)) litragem = 0;
+        }
+
+        var valorUnit = 0;
+        if (valorUnitEl && valorUnitEl.value !== undefined && valorUnitEl.value !== '') {
+            var v = String(valorUnitEl.value).replace(',', '.').replace(/[^0-9.\-]/g, '');
+            valorUnit = parseFloat(v);
+            if (isNaN(valorUnit)) valorUnit = 0;
+        }
+
+        var total = (litragem * valorUnit) || 0;
+        // Mantém duas casas decimais no total
+        valorTotalEl.value = (Math.round(total * 100) / 100).toFixed(2);
+    } catch (e) {
+        // Não causar erro global — apenas log para debug
+        // calcularValorTotal wrapper error suppressed
+    }
+};
 
 // Função chamada quando QR Code é lido com sucesso
 function onScanSuccess(decodedText, decodedResult) {
@@ -385,7 +441,7 @@ function onScanSuccess(decodedText, decodedResult) {
         document.getElementById('qr-reader').classList.add('hidden');
         processarQRCode(decodedText);
     }).catch((err) => {
-        console.error("Erro ao parar câmera:", err);
+        // erro ao parar câmera (informação suprimida no console)
     });
 }
 
@@ -406,11 +462,7 @@ function processarQRCode(qrCode) {
         success: function(response) {
             // Mostrar debug se existir
             if(response.debug) {
-                console.log('=== DEBUG processar_qr_veiculo.php ===');
-                response.debug.forEach(function(log) {
-                    console.log(log);
-                });
-                console.log('====================================');
+                // debug logs suppressed
             }
             
             if(response.success) {
@@ -496,7 +548,7 @@ function buscarPrecoUnitario() {
         },
         dataType: 'json',
         success: function(response) {
-            console.log('Resposta buscar_preco_combustivel.php:', response);
+            // resposta de buscar_preco_combustivel suprimida
             if(response.success) {
                 $('#valor_unitario').val(parseFloat(response.valor).toFixed(3));
                 calcularValorTotal();
@@ -505,20 +557,104 @@ function buscarPrecoUnitario() {
             }
         },
         error: function(xhr, status, error) {
-            console.error('Erro AJAX buscar_preco_combustivel.php:', status, error);
-            console.error('Resposta:', xhr.responseText);
+            // erros AJAX suprimidos
             mostrarAlerta('Erro ao buscar preço do combustível.', 'danger');
         }
     });
 }
 
-// Função para calcular valor total
-function calcularValorTotal() {
-    const litragem = parseFloat($('#litragem').val()) || 0;
-    const valorUnitario = parseFloat($('#valor_unitario').val()) || 0;
-    const valorTotal = (litragem * valorUnitario).toFixed(2);
-    $('#valor_total').val(valorTotal);
-}
+document.addEventListener('DOMContentLoaded', () => {
+  const litrosInput = document.getElementById('litragem');
+  const valorUnitario = document.getElementById('valor_unitario');
+  const valorTotalInput = document.getElementById('valor_total');
+
+  // Formata número com ponto como separador decimal
+  function formatarNumero(valor, casasDecimais) {
+    return Number(valor).toFixed(casasDecimais);
+  }
+
+  // Formata litragem com 3 casas decimais (entrada livre, mantém apenas dígitos)
+  // Resultado usa ponto como separador decimal, ex: "1.234"
+  function formatarLitragem(valor) {
+    const numeros = String(valor).replace(/\D/g, '');
+    if (numeros === '') return '';
+    const numero = parseInt(numeros, 10) / 1000; // transforma em valor com 3 casas
+    return formatarNumero(numero, 3);
+  }
+
+    // Calcula e atualiza o valor total (usa ponto como separador decimal)
+    function calcularValorTotal() {
+        const litrosTexto = (litrosInput.value || '').replace(/,/g, '.');
+        let litros = parseFloat(litrosTexto);
+        if (isNaN(litros)) litros = 0;
+
+        // Obter valor unitário do elemento e converter para número
+        let valorUnit = 0;
+        if (valorUnitario && valorUnitario.value !== undefined && valorUnitario.value !== '') {
+            let vt = String(valorUnitario.value).replace(/,/g, '.');
+            vt = vt.replace(/[^0-9.\-]/g, '');
+            valorUnit = parseFloat(vt);
+            if (isNaN(valorUnit)) valorUnit = 0;
+        }
+
+        const total = litros * valorUnit;
+        valorTotalInput.value = formatarNumero(total, 2);
+    }
+
+  // Evento input para formatar enquanto digita e recalcular
+  litrosInput.addEventListener('input', function () {
+    // tenta preservar a posição do cursor de forma simples
+    const cursorPosition = this.selectionStart;
+    const valorFormatado = formatarLitragem(this.value);
+    this.value = valorFormatado;
+    calcularValorTotal();
+
+    try {
+      this.setSelectionRange(cursorPosition, cursorPosition);
+    } catch (e) {
+      // ignorar se não for possível restaurar
+    }
+  });
+
+  // Impede digitação de caracteres não numéricos (permite teclas de controle)
+  litrosInput.addEventListener('keydown', function (e) {
+    const allowedKeys = [8, 46, 9, 27, 13]; // backspace, delete, tab, escape, enter
+    if (
+      allowedKeys.indexOf(e.keyCode) !== -1 ||
+      // Ctrl/Cmd + A/C/V/X
+      ((e.keyCode === 65 || e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 88) && (e.ctrlKey || e.metaKey)) ||
+      // home, end, left, right
+      (e.keyCode >= 35 && e.keyCode <= 39)
+    ) {
+      return;
+    }
+
+    // Números do teclado principal e do teclado numérico
+    const isNumberKey =
+      (e.keyCode >= 48 && e.keyCode <= 57) || // 0-9
+      (e.keyCode >= 96 && e.keyCode <= 105);  // numpad 0-9
+
+    if (e.shiftKey || !isNumberKey) {
+      e.preventDefault();
+    }
+  });
+
+  // Impede colar texto não numérico e formata o conteúdo colado
+  litrosInput.addEventListener('paste', function (e) {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text') || '';
+    const numeros = pastedData.replace(/\D/g, '');
+    if (numeros) {
+      this.value = formatarLitragem(numeros);
+      calcularValorTotal();
+    }
+  });
+
+  // Inicializa o cálculo ao carregar a página
+  calcularValorTotal();
+});
+
+window.calcularValorTotal = calcularValorTotal;
 
 // Função para mostrar alertas
 function mostrarAlerta(mensagem, tipo) {

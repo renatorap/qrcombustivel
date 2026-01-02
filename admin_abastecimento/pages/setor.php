@@ -75,7 +75,7 @@ $statusLicenca = LicenseChecker::verificarEBloquear($clienteId, $grupoId);
 
     <!-- Modal Setor -->
     <div class="modal fade" id="modalSetor" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-wide">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalSetorLabel">Novo Setor</h5>

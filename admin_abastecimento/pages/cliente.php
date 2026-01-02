@@ -86,7 +86,7 @@ $podeExcluir = $accessControl->verificarPermissao('clientes', 'excluir');
 
     <!-- Modal para criar/editar cliente -->
     <div class="modal fade" id="modalCliente" tabindex="-1">
-        <div class="modal-dialog modal-dialog-wide">
+        <div class="modal-dialog modal-dialog-wide modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalTitle">Novo Cliente</h5>
@@ -141,45 +141,47 @@ $podeExcluir = $accessControl->verificarPermissao('clientes', 'excluir');
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="cnpj">CNPJ *</label>
                                             <input type="text" class="form-control" id="cnpj" name="cnpj" required placeholder="00.000.000/0000-00">
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="inscricao_estadual">Inscrição Estadual</label>
                                             <input type="text" class="form-control" id="inscricao_estadual" name="inscricao_estadual">
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="inscricao_municipal">Inscrição Municipal</label>
                                             <input type="text" class="form-control" id="inscricao_municipal" name="inscricao_municipal">
                                         </div>
                                     </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check mt-4">
+                                            <input type="checkbox" class="form-check-input" id="ativo" name="ativo" checked>
+                                            <label class="form-check-label" for="ativo">Cliente Ativo</label>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="logo">Upload de Logo</label>
                                             <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
                                             <small class="form-text text-muted">Formatos aceitos: JPG, PNG, GIF (máx. 2MB)</small>
                                             <input type="hidden" id="logo_path" name="logo_path">
                                         </div>
+                                    </div>
+                                    <div class="col-md-8">
                                         <div id="logoPreview" class="mt-2" style="display: none;">
-                                            <img id="logoImg" src="" alt="Logo Preview" style="max-width: 150px; max-height: 150px; border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                                            <img id="logoImg" src="" alt="Logo Preview" style="max-width: 85px; max-height: 85px; border: 1px solid #ddd; padding: 3px; border-radius: 4px;">
                                             <button type="button" class="btn btn-sm btn-danger mt-1" onclick="removerLogo()">
                                                 <i class="fas fa-trash"></i> Remover
                                             </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-check mt-4">
-                                            <input type="checkbox" class="form-check-input" id="ativo" name="ativo" checked>
-                                            <label class="form-check-label" for="ativo">Cliente Ativo</label>
                                         </div>
                                     </div>
                                 </div>
@@ -278,7 +280,7 @@ $podeExcluir = $accessControl->verificarPermissao('clientes', 'excluir');
                                         </button>
                                     </div>
                                     <div class="table-responsive">
-                                        <table class="table table-sm table-modern">
+                                        <table class="table-modern">
                                             <thead>
                                                 <tr>
                                                     <th>Usuário</th>
@@ -298,7 +300,7 @@ $podeExcluir = $accessControl->verificarPermissao('clientes', 'excluir');
                             </div>
                         </div>
 
-                        <div class="mt-3 text-end">
+                        <div class="mt-3 d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                 <i class="fas fa-times"></i> Cancelar
                             </button>

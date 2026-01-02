@@ -162,7 +162,7 @@ $podeVisualizar = $accessControl->verificarPermissao('aditamento', 'visualizar')
                                     </div>
                                 </div>
 
-                                <div class="mt-3 text-end">
+                                <div class="mt-3 d-flex justify-content-end gap-2">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                         <i class="fas fa-times"></i> Cancelar
                                     </button>
@@ -198,7 +198,7 @@ $podeVisualizar = $accessControl->verificarPermissao('aditamento', 'visualizar')
                                             </div>
                                         </div>
                                         <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
+                                            <table class="table-modern">
                                                 <thead class="table-light">
                                                     <tr>
                                                         <th style="width: 40%;">Combustível</th>
@@ -214,7 +214,7 @@ $podeVisualizar = $accessControl->verificarPermissao('aditamento', 'visualizar')
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div class="text-end">
+                                        <div class="d-flex justify-content-end gap-2">
                                             <button type="button" class="btn btn-secondary" onclick="cancelarNovosPrecos()">
                                                 <i class="fas fa-times"></i> Cancelar
                                             </button>
@@ -233,7 +233,7 @@ $podeVisualizar = $accessControl->verificarPermissao('aditamento', 'visualizar')
                                 
                                 <h6><strong>Preços Cadastrados</strong></h6>
                                 <div class="table-responsive">
-                                    <table class="table table-sm table-hover">
+                                    <table class="table-modern">
                                         <thead>
                                             <tr>
                                                 <th>Combustível</th>

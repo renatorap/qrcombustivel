@@ -87,7 +87,7 @@ $podeExcluir = $accessControl->verificarPermissao('condutores', 'excluir');
 
     <!-- Modal Novo/Editar Condutor -->
     <div class="modal fade" id="modalCondutor" tabindex="-1">
-        <div class="modal-dialog modal-dialog-wide modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-dialog-wide modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalTitle">Novo Condutor</h5>
@@ -320,7 +320,7 @@ $podeExcluir = $accessControl->verificarPermissao('condutores', 'excluir');
 
     <!-- Modal Visualização -->
     <div class="modal fade" id="modalVisualizacao" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Detalhes do Condutor</h5>

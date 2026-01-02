@@ -74,7 +74,7 @@ $statusLicenca = LicenseChecker::verificarEBloquear($clienteId, $grupoId);
 
     <!-- Modal Unidade -->
     <div class="modal fade" id="modalUnidade" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-wide">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalUnidadeLabel">Nova Unidade Orçamentária</h5>

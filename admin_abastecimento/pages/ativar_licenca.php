@@ -134,7 +134,7 @@ if (!in_array($grupoId, [1, 2, 3])) {
 
     <!-- Modal de Sucesso -->
     <div class="modal fade" id="modalSucesso" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-body success-modal-body">
                     <div class="success-animation mb-4">
